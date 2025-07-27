@@ -9,24 +9,24 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.expressivegram.messenger.R
 
 data class NavigationItem(
-    val route: String,
+    val route: Route,
     val icon: ImageVector,
     @param:StringRes val label: Int
 )
 
 val navigationItems = listOf(
     NavigationItem(
-        route = Route.Calls.path,
+        route = Route.CallsList,
         icon = Icons.Outlined.Call,
         label = R.string.nav_calls
     ),
     NavigationItem(
-        route = Route.Chats.path,
+        route = Route.ChatsList,
         icon = Icons.Outlined.ChatBubble,
         label = R.string.nav_chats
     ),
     NavigationItem(
-        route = Route.Settings.path,
+        route = Route.Settings,
         icon = Icons.Outlined.Settings,
         label = R.string.nav_settings
     )

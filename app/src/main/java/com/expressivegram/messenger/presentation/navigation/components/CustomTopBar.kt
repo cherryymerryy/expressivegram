@@ -23,9 +23,11 @@ fun CustomTopBar(
         title = {
             Text(
                 text = when (currentRoute) {
-                    is Route.Calls -> stringResource(R.string.nav_calls)
-                    is Route.Chats -> stringResource(R.string.nav_chats)
+                    is Route.Main -> "Main"
+                    is Route.CallsList -> stringResource(R.string.nav_calls)
+                    is Route.ChatsList -> stringResource(R.string.nav_chats)
                     is Route.Settings -> stringResource(R.string.nav_settings)
+                    is Route.Chat -> "Chat"
                     null -> ""
                 },
                 style = MaterialTheme.typography.titleLarge

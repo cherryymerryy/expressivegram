@@ -19,10 +19,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.expressivegram.messenger.presentation.navigation.Route
 import com.expressivegram.messenger.presentation.navigation.components.CustomBottomNav
 import com.expressivegram.messenger.presentation.navigation.components.CustomTopBar
 import com.expressivegram.messenger.presentation.screens.callslist.CallsList
+import com.expressivegram.messenger.presentation.screens.chat.ChatScreen
 import com.expressivegram.messenger.presentation.screens.chatslist.ChatList
 import com.expressivegram.messenger.presentation.screens.settings.SettingsScreen
 import org.drinkless.tdlib.TdApi
@@ -31,9 +34,10 @@ import org.drinkless.tdlib.TdApi
 @Composable
 fun MainScreen(navController: NavHostController) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val localNavController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route?.let { Route.fromPath(it) }
-    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         modifier = Modifier
@@ -48,7 +52,7 @@ fun MainScreen(navController: NavHostController) {
         },
         bottomBar = {
             CustomBottomNav(
-                navController = navController,
+                navController = localNavController,
                 currentRoute = currentRoute
             )
         },
@@ -69,17 +73,20 @@ fun MainScreen(navController: NavHostController) {
         containerColor = MaterialTheme.colorScheme.surface
     ) { ip ->
         NavHost(
-            navController = navController,
-            startDestination = "chats",
+            navController = localNavController,
+            startDestination = Route.ChatsList,
             modifier = Modifier.padding(ip)
         ) {
-            composable(Route.Calls.path) {
+            composable<Route.CallsList> {
                 CallsList()
             }
-            composable(Route.Chats.path) {
-                ChatList(TdApi.ChatListMain())
+            composable<Route.ChatsList> {
+                ChatList(
+                    chatList = TdApi.ChatListMain(),
+                    navController = navController
+                )
             }
-            composable(Route.Settings.path) {
+            composable<Route.Settings> {
                 SettingsScreen()
             }
         }

@@ -5,9 +5,14 @@ import com.expressivegram.messenger.ApplicationLoader
 import com.expressivegram.messenger.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
@@ -21,10 +26,26 @@ import java.util.Locale
 
 
 class TdUtility private constructor() {
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var client: Client
 
-    private val _updates = MutableSharedFlow<TdApi.Object>(replay = 1)
+    private val _updates = MutableSharedFlow<TdApi.Object>()
     val updates = _updates.asSharedFlow()
+
+    private val _authState = MutableStateFlow<TdApi.AuthorizationState?>(null)
+    val authState = _authState.asStateFlow()
+
+    init {
+        scope.launch {
+            _updates
+                .filterIsInstance<TdApi.UpdateAuthorizationState>()
+                .map { it.authorizationState }
+                .collect { newState ->
+                    Log.e("Received new auth state: ${newState.javaClass.simpleName}", "TdUtility")
+                    _authState.value = newState
+                }
+        }
+    }
 
     private fun createClient() {
         Client.setLogMessageHandler(0, null)
@@ -48,7 +69,7 @@ class TdUtility private constructor() {
         }
 
         val updateHandler = Client.ResultHandler { update ->
-            CoroutineScope(Dispatchers.Default).launch {
+            scope.launch {
                 _updates.emit(update)
             }
         }
@@ -73,20 +94,22 @@ class TdUtility private constructor() {
             }
         }
 
-        suspend fun initialize(): TdApi.AuthorizationState {
+        suspend fun initialize() {
             val util = getInstance()
             if (util::client.isInitialized) {
-                return util.getClient().execute(TdApi.GetAuthorizationState())
+                util.getClient().send(TdApi.GetAuthorizationState(), null)
+                return
             }
 
             synchronized(this) {
                 if (!util::client.isInitialized) {
+                    Log.e("TdUtility", "Creating new TDLib client.")
                     util.createClient()
                 }
             }
 
-            val databaseDir = File(ApplicationLoader.Companion.applicationContext.filesDir, "data")
-            val filesDir = File(ApplicationLoader.Companion.applicationContext.filesDir, "td_files")
+            val databaseDir = File(ApplicationLoader.applicationContext.filesDir, "data")
+            val filesDir = File(ApplicationLoader.applicationContext.filesDir, "td_files")
 
             val params = TdApi.SetTdlibParameters().apply {
                 apiHash = BuildConfig.APP_HASH
@@ -104,9 +127,6 @@ class TdUtility private constructor() {
                 useTestDc = false
             }
             util.client.send(params, null)
-
-            val firstUpdate = util.updates.first { it is TdApi.UpdateAuthorizationState } as TdApi.UpdateAuthorizationState
-            return firstUpdate.authorizationState
         }
     }
 }

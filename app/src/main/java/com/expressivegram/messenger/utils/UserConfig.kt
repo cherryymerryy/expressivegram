@@ -5,6 +5,7 @@ import org.drinkless.tdlib.TdApi
 class UserConfig {
     private var currentUser: TdApi.User? = null
     private var currentUserFullInfo: TdApi.UserFullInfo? = null
+    private var folders: List<TdApi.ChatFolderInfo>? = null
     private var initialized: Boolean = currentUser != null && currentUserFullInfo != null
 
     companion object {
@@ -55,5 +56,14 @@ class UserConfig {
     fun setCurrentUserFullInfo(user: TdApi.UserFullInfo): TdApi.UserFullInfo? {
         currentUserFullInfo = user
         return currentUserFullInfo
+    }
+
+    fun getFolders(): List<TdApi.ChatFolderInfo>? {
+        return folders
+    }
+
+    fun setFolders(folders: List<TdApi.ChatFolderInfo>): List<TdApi.ChatFolderInfo>? {
+        this.folders = folders
+        return this.folders
     }
 }

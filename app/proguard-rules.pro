@@ -21,3 +21,26 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class org.drinkless.tdlib.** { *; }
+
+# --- Правила для kotlinx.serialization ---
+-keep,allowobfuscation,allowshrinking class kotlinx.serialization.internal.*
+-keep class *$$serializer { *; }
+
+-if class **.Companion {
+    public static **$$serializer Companion;
+}
+-keep class **.Companion {
+    public static **$$serializer Companion;
+}
+
+-if class ** {
+    public static final ** Companion;
+}
+-keep class ** {
+    public static final ** Companion;
+}
+
+-keepnames class kotlinx.serialization.SerialName
+-keepclassmembers class * {
+    @kotlinx.serialization.SerialName *;
+}

@@ -20,9 +20,7 @@ fun CustomBottomNav(
 ) {
     NavigationBar {
         navigationItems.forEach { item ->
-            val isSelected = when (item.route) {
-                else -> currentRoute?.path == item.route
-            }
+            val isSelected = currentRoute?.path == item.route.path
 
             NavigationBarItem(
                 selected = isSelected,

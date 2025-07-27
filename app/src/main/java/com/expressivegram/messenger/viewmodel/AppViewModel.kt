@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.Log
+import com.expressivegram.messenger.utils.UserConfig
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -26,21 +28,25 @@ class AppViewModel : ViewModel() {
     private val tdUtility = TdUtility.getInstance()
 
     init {
+        tdUtility.authState
+            .filterNotNull()
+            .onEach { authState ->
+                Log.e("Received auth state from TdUtility: ${authState.javaClass.simpleName}", "AppViewModel")
+                updateAppState(authState)
+            }
+            .launchIn(viewModelScope)
+
+        tdUtility.updates
+            .filterIsInstance<TdApi.UpdateChatFolders>()
+            .onEach { updateFolders ->
+                UserConfig.getInstance().setFolders(updateFolders.chatFolders.asList())
+            }
+            .launchIn(viewModelScope)
+
         viewModelScope.launch {
             try {
-                val initialState = TdUtility.initialize()
-                Log.e("AppViewModel", "TDLib initialized. Initial state: ${initialState.javaClass.simpleName}")
-
-                updateAppState(initialState)
-
-                tdUtility.updates
-                    .filterIsInstance<TdApi.UpdateAuthorizationState>()
-                    .onEach { update ->
-                        Log.e("AppViewModel", "Auth state updated via flow: ${update.authorizationState.javaClass.simpleName}")
-                        updateAppState(update.authorizationState)
-                    }
-                    .launchIn(viewModelScope)
-
+                TdUtility.initialize()
+                Log.e("TDLib initialization process started.", "AppViewModel")
             } catch (e: Exception) {
                 Log.e(e, "AppViewModel", "Failed to initialize TDLib")
             }
@@ -48,13 +54,18 @@ class AppViewModel : ViewModel() {
     }
 
     private fun updateAppState(authState: TdApi.AuthorizationState) {
-        _appState.value = when (authState.constructor) {
+        val newAppState = when (authState.constructor) {
             TdApi.AuthorizationStateReady.CONSTRUCTOR -> AppState.LoggedIn
-            TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> AppState.Loading
-            TdApi.AuthorizationStateClosed.CONSTRUCTOR -> AppState.Loading
-            TdApi.AuthorizationStateClosing.CONSTRUCTOR -> AppState.Loading
+
+            TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR,
+            TdApi.AuthorizationStateClosing.CONSTRUCTOR,
+            TdApi.AuthorizationStateClosed.CONSTRUCTOR,
             TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR -> AppState.Loading
+
             else -> AppState.NeedsAuth
         }
+
+        Log.e("Mapping to AppState: ${newAppState.javaClass.simpleName}", "AppViewModel")
+        _appState.value = newAppState
     }
 }
