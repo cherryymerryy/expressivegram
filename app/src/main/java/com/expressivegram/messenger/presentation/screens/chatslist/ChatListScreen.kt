@@ -40,7 +40,7 @@ fun ChatListScreen(
     val chats by viewModel.chats.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(key1 = chatList) {
         viewModel.loadChats(chatList)
     }
 

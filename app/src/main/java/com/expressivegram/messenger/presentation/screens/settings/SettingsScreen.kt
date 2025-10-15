@@ -51,12 +51,12 @@ import androidx.compose.ui.tooling.preview.Wallpapers.GREEN_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expressivegram.messenger.BuildConfig
+import com.expressivegram.messenger.extensions.getMessageContent
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceCategory
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceItem
 import com.expressivegram.messenger.presentation.components.preferences.PreferencePosition
 import com.expressivegram.messenger.utils.UserConfig
 import com.expressivegram.messenger.viewmodel.settings.SettingsViewModel
-import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Preview(showBackground = true, showSystemUi = true, wallpaper = GREEN_DOMINATED_EXAMPLE)
@@ -147,7 +147,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     item {
                         PreferenceItem(
                             title = personalChat?.title ?: "None",
-                            subtitle = (personalChat?.lastMessage?.content as TdApi.MessageText).text.text,
+                            subtitle = (personalChat?.lastMessage?.getMessageContent() ?: "❓ Unknown content").substring(30),
                             icon = Icons.Rounded.Campaign,
                             position = PreferencePosition.Single,
                         )

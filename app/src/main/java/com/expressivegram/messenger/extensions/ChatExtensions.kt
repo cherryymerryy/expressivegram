@@ -33,3 +33,19 @@ suspend fun TdApi.Chat.getChatTitle(): String {
 fun TdApi.Chat.isForum(): Boolean {
     return this.viewAsTopics && this.type is TdApi.ChatTypeSupergroup
 }
+
+fun TdApi.Chat.isChannel(): Boolean {
+    return if (this.type is TdApi.ChatTypeSupergroup)
+            (this.type as TdApi.ChatTypeSupergroup).isChannel
+    else
+        false
+}
+
+fun TdApi.Message.getForumTopicId(): Long {
+    return when (this.topicId) {
+        is TdApi.MessageTopicForum -> (topicId as TdApi.MessageTopicForum).forumTopicId
+        is TdApi.MessageTopicDirectMessages -> (topicId as TdApi.MessageTopicDirectMessages).directMessagesChatTopicId
+        is TdApi.MessageTopicSavedMessages -> (topicId as TdApi.MessageTopicSavedMessages).savedMessagesTopicId
+        else -> 0
+    }
+}

@@ -26,20 +26,55 @@ class ChatListViewModel : ViewModel() {
     private val _folders = mutableStateOf<List<TdApi.ChatFolderInfo>>(emptyList())
     val folders: State<List<TdApi.ChatFolderInfo>> = _folders
 
+    private val _pinnedChatsIds = mutableListOf<Long>()
+
     init {
         val instance = TdUtility.getInstance()
 
-//        instance.updates
-//            .filterIsInstance<TdApi.UpdateNewChat>()
-//            .onEach { updateNewChat ->
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatPosition>()
+            .onEach { updateChatPosition ->
 //                _chats.update { currentList ->
 //                    val newList = currentList.toMutableList()
-//                    newList.removeAll { it.id == updateNewChat.chat.id }
-//                    newList.add(updateNewChat.chat)
+//                    val chat = newList.firstOrNull { it.id == updateChatPosition.chatId }
+//
+//                    if (chat == null) {
+//                        return@onEach
+//                    }
+//
+//                    newList.remove(chat)
+//                    newList.add(updateChatPosition.position.order.toInt(), chat)
 //                    newList
 //                }
-//            }
-//            .launchIn(viewModelScope)
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateNewMessage>()
+            .onEach { updateNewMessage ->
+                val newElementIndex = _pinnedChatsIds.lastIndex + 1
+                val isPinned = _pinnedChatsIds.contains(updateNewMessage.message.chatId)
+
+                _chats.update { currentList ->
+                    val newList = currentList.toMutableList()
+                    val localChat = newList.firstOrNull { it.id == updateNewMessage.message.chatId }
+
+                    if (localChat == null) {
+                        return@onEach
+                    }
+
+                    if (newList.indexOf(localChat) != newElementIndex && !isPinned) {
+                        newList.remove(localChat)
+                        newList.add(
+                            newElementIndex,
+                            localChat
+                        )
+                    }
+
+                    newList
+                }
+            }
+            .launchIn(viewModelScope)
 
         instance.updates
             .filterIsInstance<TdApi.UpdateChatFolders>()
@@ -63,10 +98,23 @@ class ChatListViewModel : ViewModel() {
         val chatsIds = instance.execute(TdApi.GetChats(chatList, 100))
         val chats = mutableListOf<TdApi.Chat>()
 
+        _pinnedChatsIds.clear()
+
         chatsIds.chatIds.forEach { id ->
             val chat = instance.execute(TdApi.GetChat(id))
             chats.removeAll { it.id == chat.id }
-            chats.add(chat)
+
+            val currentPosition = chat.positions.firstOrNull { it.list.constructor == chatList.constructor }
+            if (currentPosition != null) {
+                if (currentPosition.isPinned) {
+                    _pinnedChatsIds.add(chat.id)
+                    chats.add(_pinnedChatsIds.lastIndex, chat)
+                }
+            }
+
+            if (!chats.contains(chat)) {
+                chats.add(chat)
+            }
         }
 
         _chats.update { currentList ->

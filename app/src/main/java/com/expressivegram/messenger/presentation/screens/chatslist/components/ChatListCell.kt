@@ -1,6 +1,7 @@
 package com.expressivegram.messenger.presentation.screens.chatslist.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,18 +15,17 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.expressivegram.messenger.extensions.getChatTitle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expressivegram.messenger.extensions.getMessageContent
+import com.expressivegram.messenger.extensions.isForum
+import com.expressivegram.messenger.viewmodel.chatlist.ChatListCellViewModel
+import com.expressivegram.messenger.viewmodel.chatlist.ChatListCellViewModelFactory
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -34,11 +34,17 @@ fun ChatListCell(
     chat: TdApi.Chat,
     onClick: () -> Unit
 ) {
-    var title by remember { mutableStateOf("Loading...") }
+    val viewModelFactory = ChatListCellViewModelFactory(chat)
+    val viewModel: ChatListCellViewModel = viewModel(
+        key = chat.id.toString(),
+        factory = viewModelFactory
+    )
 
-    LaunchedEffect(Unit) {
-        title = chat.getChatTitle()
-    }
+    val title by viewModel.title
+    val lastMessageText by viewModel.lastMessageText
+    val unreadMessagesCount by viewModel.unreadMessagesCount
+    val lastForumTopic by viewModel.lastForumTopic
+    val isForum = chat.isForum()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -51,33 +57,46 @@ fun ChatListCell(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // TODO: Make chat profile photo
-             Box(
-                 modifier = Modifier
-                     .size(32.dp)
-                     .background(Color.Cyan)
-                     .clip(
-                         MaterialTheme.shapes.large.copy(
-                             bottomStart = MaterialTheme.shapes.extraExtraLarge.bottomStart,
-                             bottomEnd = MaterialTheme.shapes.extraExtraLarge.bottomEnd,
-                             topStart = MaterialTheme.shapes.extraExtraLarge.topStart,
-                             topEnd = MaterialTheme.shapes.extraExtraLarge.topEnd
-                         )
-                     )
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(Color.Cyan)
+                    .clip(
+                        MaterialTheme.shapes.large.copy(
+                            bottomStart = MaterialTheme.shapes.extraExtraLarge.bottomStart,
+                            bottomEnd = MaterialTheme.shapes.extraExtraLarge.bottomEnd,
+                            topStart = MaterialTheme.shapes.extraExtraLarge.topStart,
+                            topEnd = MaterialTheme.shapes.extraExtraLarge.topEnd
+                        )
+                    )
+            )
 
-             )
-
-             Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1
                 )
+
+                if (isForum && lastForumTopic != null) {
+                    Text(
+                        text = lastForumTopic?.info?.name ?: "❌ Unknown topic",
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1
+                    )
+                }
+
                 Text(
-                    text = chat.lastMessage?.getMessageContent() ?: "❓ Unsupported message content",
+                    text = if (isForum && lastForumTopic != null) {
+                        lastForumTopic?.lastMessage?.getMessageContent() ?: lastMessageText
+                    } else {
+                        lastMessageText
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1
                 )
@@ -88,7 +107,7 @@ fun ChatListCell(
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                Text("date")
+                UnreadMessagesBadge(unreadMessagesCount)
             }
         }
     }
