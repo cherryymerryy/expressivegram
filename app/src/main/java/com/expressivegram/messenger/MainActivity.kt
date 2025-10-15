@@ -8,6 +8,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.expressivegram.messenger.presentation.screens.ApplicationNavigation
 import com.expressivegram.messenger.presentation.screens.MainScreen
 import com.expressivegram.messenger.presentation.screens.auth.LoginScreen
 import com.expressivegram.messenger.presentation.screens.loading.LoadingScreen
@@ -36,7 +37,7 @@ fun AppContent(appViewModel: AppViewModel = viewModel()) {
         when (state) {
             is AppState.Loading -> LoadingScreen()
             is AppState.NeedsAuth -> LoginScreen()
-            is AppState.LoggedIn -> MainScreen()
+            is AppState.LoggedIn -> ApplicationNavigation()
         }
     }
 }

@@ -34,7 +34,7 @@ import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
     val topLevelBackStack = remember { TopLevelBackStack<NavKey>(ChatsList) }
@@ -81,7 +81,7 @@ fun MainScreen() {
                     ChatListScreen(
                         chatList = TdApi.ChatListMain(),
                         onChatClick = { id ->
-                            topLevelBackStack.add(Chat(id))
+                            mainTopLevelBackStack.add(Chat(id))
                         }
                     )
                 }
@@ -91,7 +91,7 @@ fun MainScreen() {
                 entry<Chat> { args ->
                     ChatScreen(
                         chatId = args.id,
-                        onBackClick = { topLevelBackStack.removeLast() }
+                        onBackClick = { mainTopLevelBackStack.removeLast() }
                     )
                 }
             }

@@ -9,6 +9,9 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
+data object Main : NavKey
+
+@Serializable
 data object CallsList : NavKey, BottomNavItem {
     override val icon: ImageVector = Icons.Outlined.Call
     override val title: String = "Calls List"

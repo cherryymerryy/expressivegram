@@ -1,5 +1,6 @@
 package com.expressivegram.messenger.presentation.screens.chat
 
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,10 +38,11 @@ fun ChatScreen(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
 
     Scaffold(
+        modifier = Modifier.fillMaxHeight(),
         topBar = {
             ChatTopBar(
                 chat,
-                onBackPressed = { onBackClick }
+                onBackPressed = { onBackClick() }
             )
         },
         bottomBar = {

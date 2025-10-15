@@ -21,7 +21,7 @@ fun ChatTopBar(
     TopAppBar(
         navigationIcon = {
             IconButton(
-                onClick = { onBackPressed }
+                onClick = { onBackPressed() }
             ) {
                 Icon(
                     imageVector = Icons.Rounded.ArrowBackIosNew,
