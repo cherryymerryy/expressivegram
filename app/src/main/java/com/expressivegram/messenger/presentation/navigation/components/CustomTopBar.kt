@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -70,8 +71,18 @@ fun CustomTopBar() {
             )
         }
 
-    SearchBar(state = searchBarState, inputField = inputField)
-    ExpandedFullScreenSearchBar(state = searchBarState, inputField = inputField) {
+    TopAppBar(
+        title = {
+            SearchBar(
+                state = searchBarState,
+                inputField = inputField
+            )
+            ExpandedFullScreenSearchBar(
+                state = searchBarState,
+                inputField = inputField
+            ) {
 
-    }
+            }
+        }
+    )
 }
