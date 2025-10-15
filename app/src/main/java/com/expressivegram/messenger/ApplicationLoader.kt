@@ -2,6 +2,7 @@ package com.expressivegram.messenger
 
 import android.app.Application
 import android.content.Context
+import com.expressivegram.messenger.utils.DownloadController
 
 class ApplicationLoader : Application() {
     companion object {
@@ -11,5 +12,6 @@ class ApplicationLoader : Application() {
     override fun onCreate() {
         super.onCreate()
         Companion.applicationContext = this
+        DownloadController.initialize()
     }
 }

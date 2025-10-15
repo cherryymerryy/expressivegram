@@ -16,14 +16,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.expressivegram.messenger.extensions.getMessageContent
 import com.expressivegram.messenger.extensions.isForum
+import com.expressivegram.messenger.utils.DownloadController
 import com.expressivegram.messenger.viewmodel.chatlist.ChatListCellViewModel
 import com.expressivegram.messenger.viewmodel.chatlist.ChatListCellViewModelFactory
 import org.drinkless.tdlib.TdApi
@@ -45,6 +50,15 @@ fun ChatListCell(
     val unreadMessagesCount by viewModel.unreadMessagesCount
     val lastForumTopic by viewModel.lastForumTopic
     val isForum = chat.isForum()
+    var chatPhotoPath by remember { mutableStateOf("") }
+
+    if (chat.photo?.small != null) {
+        if (!(chat.photo?.small?.local?.isDownloadingCompleted ?: true)) {
+            DownloadController.getInstance().downloadFile(chat.photo?.small?.id ?: 0)
+        } else {
+            chatPhotoPath = chat.photo?.small?.local?.path ?: ""
+        }
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -57,19 +71,27 @@ fun ChatListCell(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // TODO: Make chat profile photo
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(Color.Cyan)
-                    .clip(
-                        MaterialTheme.shapes.large.copy(
-                            bottomStart = MaterialTheme.shapes.extraExtraLarge.bottomStart,
-                            bottomEnd = MaterialTheme.shapes.extraExtraLarge.bottomEnd,
-                            topStart = MaterialTheme.shapes.extraExtraLarge.topStart,
-                            topEnd = MaterialTheme.shapes.extraExtraLarge.topEnd
+            if (chatPhotoPath.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Color.Cyan)
+                        .clip(
+                            MaterialTheme.shapes.large.copy(
+                                bottomStart = MaterialTheme.shapes.extraExtraLarge.bottomStart,
+                                bottomEnd = MaterialTheme.shapes.extraExtraLarge.bottomEnd,
+                                topStart = MaterialTheme.shapes.extraExtraLarge.topStart,
+                                topEnd = MaterialTheme.shapes.extraExtraLarge.topEnd
+                            )
                         )
-                    )
-            )
+                )
+            } else {
+                AsyncImage(
+                    modifier = Modifier.size(32.dp),
+                    model = chatPhotoPath,
+                    contentDescription = title
+                )
+            }
 
             Spacer(modifier = Modifier.width(8.dp))
 

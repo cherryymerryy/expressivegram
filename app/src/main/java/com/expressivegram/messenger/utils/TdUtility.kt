@@ -3,6 +3,9 @@ package com.expressivegram.messenger.utils
 import android.os.Build
 import com.expressivegram.messenger.ApplicationLoader
 import com.expressivegram.messenger.BuildConfig
+import com.expressivegram.messenger.TELEGRAM_DATABASE_PATH
+import com.expressivegram.messenger.TELEGRAM_FILES_PATH
+import com.expressivegram.messenger.TELEGRAM_PATH
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -50,7 +53,7 @@ class TdUtility private constructor() {
         Client.setLogMessageHandler(0, null)
 
         try {
-            val logs = File(ApplicationLoader.applicationContext.cacheDir, "tdlib")
+            val logs = File(ApplicationLoader.applicationContext.cacheDir, TELEGRAM_PATH)
             if (!logs.exists()) logs.mkdir()
 
             Client.execute(SetLogVerbosityLevel(0))
@@ -107,13 +110,13 @@ class TdUtility private constructor() {
                 }
             }
 
-            val databaseDir = File(ApplicationLoader.applicationContext.filesDir, "data")
-            val filesDir = File(ApplicationLoader.applicationContext.filesDir, "td_files")
+            val databaseDir = File(ApplicationLoader.applicationContext.filesDir, TELEGRAM_DATABASE_PATH)
+            val filesDir = File(ApplicationLoader.applicationContext.filesDir, TELEGRAM_FILES_PATH)
 
             val params = TdApi.SetTdlibParameters().apply {
                 apiHash = BuildConfig.APP_HASH
                 apiId = BuildConfig.APP_ID
-                applicationVersion = "${BuildConfig.VERSION_NAME}-${if (BuildConfig.DEBUG) "debug" else "prod"}"
+                applicationVersion = "(${BuildConfig.VERSION_CODE}) ${BuildConfig.VERSION_NAME}-${if (BuildConfig.DEBUG) "debug" else "prod"}"
                 systemVersion = "Android ${Build.VERSION.SDK_INT}"
                 deviceModel = "${Build.BRAND} ${Build.MODEL}"
                 databaseDirectory = databaseDir.absolutePath
