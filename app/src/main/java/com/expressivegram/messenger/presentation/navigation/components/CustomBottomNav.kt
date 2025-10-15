@@ -6,48 +6,36 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import com.expressivegram.messenger.presentation.navigation.NavConstants
-import com.expressivegram.messenger.presentation.navigation.Route
-import com.expressivegram.messenger.presentation.navigation.navigationItems
+import androidx.navigation3.runtime.NavKey
+import com.expressivegram.messenger.presentation.navigation.CallsList
+import com.expressivegram.messenger.presentation.navigation.ChatsList
+import com.expressivegram.messenger.presentation.navigation.Settings
+import com.expressivegram.messenger.presentation.navigation.TopLevelBackStack
 
 @Composable
 fun CustomBottomNav(
-    navController: NavHostController,
-    currentRoute: Route?
+    topLevelBackStack: TopLevelBackStack<NavKey>
 ) {
+    val navigationItems = listOf(CallsList, ChatsList, Settings)
+
     NavigationBar {
         navigationItems.forEach { item ->
-            val isSelected = currentRoute?.path == item.route.path
+            val isSelected = topLevelBackStack.topLevelKey == item
 
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    if (isSelected) {
-                        navController.currentBackStackEntry?.savedStateHandle?.apply {
-                            set(NavConstants.KEY_FOCUS_SEARCH_BAR, true)
-                        }
-                    } else {
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                    topLevelBackStack.switchTopLevel(item)
                 },
                 icon = {
                     Icon(
                         imageVector = item.icon,
-                        contentDescription = stringResource(item.label),
+                        contentDescription = item.title,
                     )
                 },
                 label = {
                     Text(
-                        text = stringResource(item.label),
+                        text = item.title,
                         style = MaterialTheme.typography.labelMedium
                     )
                 }

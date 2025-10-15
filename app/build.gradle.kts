@@ -17,9 +17,10 @@ android {
     namespace = "com.expressivegram.messenger"
     compileSdk = 36
 
+    val apiKeysName = "API_KEYS"
     val localProperties = Properties()
-    if (project.rootProject.file("API_KEYS").exists()) {
-        localProperties.load(project.rootProject.file("API_KEYS").inputStream())
+    if (project.rootProject.file(apiKeysName).exists()) {
+        localProperties.load(project.rootProject.file(apiKeysName).inputStream())
     }
 
     defaultConfig {
@@ -121,8 +122,11 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.compose.material3)
 
     // Coil
     implementation(libs.coil3.coil.compose)

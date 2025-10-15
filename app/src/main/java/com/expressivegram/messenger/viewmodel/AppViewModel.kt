@@ -4,8 +4,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.Log
+import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
@@ -63,6 +63,12 @@ class AppViewModel : ViewModel() {
             TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR -> AppState.Loading
 
             else -> AppState.NeedsAuth
+        }
+
+        viewModelScope.launch {
+            if (!UserConfig.Companion.getInstance().isInitialized()) {
+                UserConfig.Companion.initialize()
+            }
         }
 
         Log.e("Mapping to AppState: ${newAppState.javaClass.simpleName}", "AppViewModel")

@@ -10,14 +10,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ChatTopBar() {
+fun ChatTopBar(
+    chat: TdApi.Chat?,
+    onBackPressed: () -> Unit
+) {
     TopAppBar(
         navigationIcon = {
             IconButton(
-                onClick = {  }
+                onClick = { onBackPressed }
             ) {
                 Icon(
                     imageVector = Icons.Rounded.ArrowBackIosNew,
@@ -25,8 +29,8 @@ fun ChatTopBar() {
                 )
             }
         },
-        title = { Text("Title") },
-        subtitle = { Text("Subtitle") },
+        title = { Text(chat?.title ?: "Unknown chat") },
+        subtitle = { Text(chat?.id.toString()) },
         actions = {
             IconButton(
                 onClick = {  }

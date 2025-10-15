@@ -1,34 +1,30 @@
-// presentation/navigation/Route.kt
-
 package com.expressivegram.messenger.presentation.navigation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class Route(val path: String) {
-    @Serializable
-    data object Main : Route("main")
-
-    @Serializable
-    data object CallsList : Route("calls_list")
-
-    @Serializable
-    data object ChatsList : Route("chats_list")
-
-    @Serializable
-    data object Settings : Route("settings")
-
-    @Serializable
-    data object Chat : Route("chat/{id}")
-
-    companion object {
-        fun fromPath(route: String?): Route? = when (route) {
-            Main.path -> Main
-            CallsList.path -> CallsList
-            ChatsList.path -> ChatsList
-            Settings.path -> Settings
-            Chat.path -> Chat
-            else -> null
-        }
-    }
+data object CallsList : NavKey, BottomNavItem {
+    override val icon: ImageVector = Icons.Outlined.Call
+    override val title: String = "Calls List"
 }
+
+@Serializable
+data object ChatsList : NavKey, BottomNavItem {
+    override val icon: ImageVector = Icons.Outlined.ChatBubbleOutline
+    override val title: String = "Chats List"
+}
+
+@Serializable
+data object Settings : NavKey, BottomNavItem {
+    override val icon: ImageVector = Icons.Outlined.Settings
+    override val title: String = "Settings"
+}
+
+@Serializable
+data class Chat(val id: Long) : NavKey

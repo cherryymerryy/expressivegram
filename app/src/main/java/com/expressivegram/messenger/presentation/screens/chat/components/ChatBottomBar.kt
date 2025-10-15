@@ -5,9 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.EmojiEmotions
-import androidx.compose.material.icons.rounded.KeyboardVoice
-import androidx.compose.material.icons.rounded.RecordVoiceOver
-import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,12 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 
 @Composable
-fun ChatBottomBar() {
+fun ChatBottomBar(onSendClick: (String) -> Unit) {
     val text = remember { mutableStateOf("") }
+
     BottomAppBar(
         actions = {
             IconButton(
-                onClick = {  },
+                onClick = { },
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Add,
@@ -48,7 +46,7 @@ fun ChatBottomBar() {
                 )
             }
             IconButton(
-                onClick = {  },
+                onClick = { onSendClick(text.value) },
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Send,

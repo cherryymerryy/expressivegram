@@ -1,6 +1,7 @@
-package com.expressivegram.messenger.utils
+package com.expressivegram.messenger.extensions
 
 import com.expressivegram.messenger.data.TdLibException
+import com.expressivegram.messenger.utils.Log
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
@@ -29,4 +30,8 @@ suspend fun <T : TdApi.Object> Client.execute(query: TdApi.Function<T>): T {
             }
         }
     }
+}
+
+fun <T: TdApi.Object> Client.send(query: TdApi.Function<T>) {
+    this.send(query) { Log.e("Sent $query") }
 }

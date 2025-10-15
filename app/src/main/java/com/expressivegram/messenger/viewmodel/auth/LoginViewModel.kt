@@ -6,10 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expressivegram.messenger.data.TdLibException
+import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.utils.Log
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
-import com.expressivegram.messenger.utils.execute
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -21,7 +21,6 @@ class LoginViewModel : ViewModel() {
     private val client = tdUtility.getClient()
 
     private val _authState = mutableStateOf<TdApi.AuthorizationState?>(null)
-    val authState: State<TdApi.AuthorizationState?> = _authState
 
     val placeholderText: State<String> = derivedStateOf {
         when (_authState.value?.constructor) {

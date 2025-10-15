@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.Client
@@ -94,7 +93,7 @@ class TdUtility private constructor() {
             }
         }
 
-        suspend fun initialize() {
+        fun initialize() {
             val util = getInstance()
             if (util::client.isInitialized) {
                 util.getClient().send(TdApi.GetAuthorizationState(), null)

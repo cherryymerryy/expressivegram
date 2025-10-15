@@ -3,6 +3,8 @@ package com.expressivegram.messenger.presentation.screens.chatslist
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,16 +15,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.expressivegram.messenger.presentation.screens.chatslist.components.ChatListCell
 import com.expressivegram.messenger.presentation.screens.chatslist.components.FoldersListCell
 import com.expressivegram.messenger.utils.UserConfig
@@ -32,9 +31,9 @@ import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ChatList(
+fun ChatListScreen(
     chatList: TdApi.ChatList,
-    navController: NavController,
+    onChatClick: (Long) -> Unit,
     viewModel: ChatListViewModel = viewModel()
 ) {
     val isFoldersLoading by viewModel.isFoldersLoading
@@ -46,7 +45,10 @@ fun ChatList(
     }
 
     Column(
-        modifier = Modifier.padding(horizontal = 8.dp)
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .fillMaxHeight()
+            .fillMaxWidth()
     ) {
         if (!isFoldersLoading || UserConfig.getInstance().getFolders() != null) {
             val folders = UserConfig.getInstance().getFolders()!!
@@ -72,41 +74,46 @@ fun ChatList(
                 .background(MaterialTheme.colorScheme.background)
                 .clip(
                     MaterialTheme.shapes.large.copy(
-                        bottomStart = MaterialTheme.shapes.small.bottomStart,
-                        bottomEnd = MaterialTheme.shapes.small.bottomEnd,
-                        topStart = MaterialTheme.shapes.small.topStart,
-                        topEnd = MaterialTheme.shapes.small.topEnd
+                        bottomStart = MaterialTheme.shapes.large.bottomStart,
+                        bottomEnd = MaterialTheme.shapes.large.bottomEnd,
+                        topStart = MaterialTheme.shapes.large.topStart,
+                        topEnd = MaterialTheme.shapes.large.topEnd
                     )
-                ),
+                )
+                .fillMaxHeight()
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (chats.isNotEmpty()) {
                 items(chats, key = { it.id }) { chat ->
-                    val rememberedOnClick = remember(chat.id) {
-                        { navController.navigate("chat/${chat.id}") }
-                    }
                     ChatListCell(
                         chat = chat,
-                        onClick = rememberedOnClick
+                        onClick = { onChatClick(chat.id) }
                     )
                 }
             } else {
                 item {
-                    LoadingIndicator()
-                }
-
-                item {
-                    Text(
-                        text = "Chats not found, try to send messages!"
-                    )
+                    NotFoundScreen()
                 }
             }
         }
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PreviewChatList() {
-    ChatList(TdApi.ChatListMain(), rememberNavController())
+fun NotFoundScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        LoadingIndicator()
+        Text(
+            text = "Chats not found, try to send messages!"
+        )
+    }
 }

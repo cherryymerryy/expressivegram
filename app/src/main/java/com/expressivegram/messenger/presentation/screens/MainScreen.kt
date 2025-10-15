@@ -11,50 +11,43 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import com.expressivegram.messenger.presentation.navigation.Route
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import com.expressivegram.messenger.presentation.navigation.CallsList
+import com.expressivegram.messenger.presentation.navigation.Chat
+import com.expressivegram.messenger.presentation.navigation.ChatsList
+import com.expressivegram.messenger.presentation.navigation.Settings
+import com.expressivegram.messenger.presentation.navigation.TopLevelBackStack
 import com.expressivegram.messenger.presentation.navigation.components.CustomBottomNav
 import com.expressivegram.messenger.presentation.navigation.components.CustomTopBar
-import com.expressivegram.messenger.presentation.screens.callslist.CallsList
+import com.expressivegram.messenger.presentation.screens.callslist.CallsListScreen
 import com.expressivegram.messenger.presentation.screens.chat.ChatScreen
-import com.expressivegram.messenger.presentation.screens.chatslist.ChatList
+import com.expressivegram.messenger.presentation.screens.chatslist.ChatListScreen
 import com.expressivegram.messenger.presentation.screens.settings.SettingsScreen
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavHostController) {
+fun MainScreen() {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
-    val localNavController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route?.let { Route.fromPath(it) }
+    val topLevelBackStack = remember { TopLevelBackStack<NavKey>(ChatsList) }
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            CustomTopBar(
-                currentRoute = currentRoute,
-                onNavigateBack = { navController.popBackStack() },
-                scrollBehavior = scrollBehavior
-            )
+            CustomTopBar()
         },
         bottomBar = {
-            CustomBottomNav(
-                navController = localNavController,
-                currentRoute = currentRoute
-            )
+            CustomBottomNav(topLevelBackStack)
         },
         snackbarHost = {
             SnackbarHost(
@@ -72,23 +65,36 @@ fun MainScreen(navController: NavHostController) {
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { ip ->
-        NavHost(
-            navController = localNavController,
-            startDestination = Route.ChatsList,
-            modifier = Modifier.padding(ip)
-        ) {
-            composable<Route.CallsList> {
-                CallsList()
+        NavDisplay(
+            modifier = Modifier.padding(ip),
+            backStack = topLevelBackStack.backStack,
+            onBack = { topLevelBackStack.removeLast() },
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
+            entryProvider = entryProvider {
+                entry<CallsList> {
+                    CallsListScreen()
+                }
+                entry<ChatsList> {
+                    ChatListScreen(
+                        chatList = TdApi.ChatListMain(),
+                        onChatClick = { id ->
+                            topLevelBackStack.add(Chat(id))
+                        }
+                    )
+                }
+                entry<Settings> {
+                    SettingsScreen()
+                }
+                entry<Chat> { args ->
+                    ChatScreen(
+                        chatId = args.id,
+                        onBackClick = { topLevelBackStack.removeLast() }
+                    )
+                }
             }
-            composable<Route.ChatsList> {
-                ChatList(
-                    chatList = TdApi.ChatListMain(),
-                    navController = navController
-                )
-            }
-            composable<Route.Settings> {
-                SettingsScreen()
-            }
-        }
+        )
     }
 }

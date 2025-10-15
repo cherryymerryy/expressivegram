@@ -1,7 +1,9 @@
 package com.expressivegram.messenger.presentation.screens.chatslist.components
 
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -9,6 +11,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import org.drinkless.tdlib.TdApi
 
 @Composable
@@ -21,24 +24,25 @@ fun FoldersListCell(folders: List<TdApi.ChatFolderInfo?>?, onClick: (Int) -> Uni
     val fullFolders = folders.toMutableList()
     fullFolders.add(0, null)
 
-    PrimaryTabRow(
-        selectedTabIndex = selectedIndex
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        fullFolders.forEachIndexed { index, info ->
+        itemsIndexed(fullFolders) { index, info ->
             val isSelected = index == selectedIndex
-            Tab(
+
+            AssistChip(
+                enabled = !isSelected,
                 onClick = {
                     if (isSelected) {
-                        return@Tab
+                        return@AssistChip
                     }
 
                     selectedIndex = index
                     onClick(selectedIndex)
                 },
-                selected = isSelected,
-                text = {
+                label = {
                     Text(
-                        text = if (info == null) "All chats" else info.name.text.text,
+                        text = info?.name?.text?.text ?: "All chats",
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
