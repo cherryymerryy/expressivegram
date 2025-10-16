@@ -9,8 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.extensions.getChatTitle
 import com.expressivegram.messenger.extensions.getForumTopicId
-import com.expressivegram.messenger.extensions.getMessageContent
-import com.expressivegram.messenger.extensions.getSenderName
+import com.expressivegram.messenger.extensions.getLastMessageText
 import com.expressivegram.messenger.extensions.isForum
 import com.expressivegram.messenger.utils.TdUtility
 import kotlinx.coroutines.flow.filterIsInstance
@@ -38,7 +37,7 @@ class ChatListCellViewModel(chat: TdApi.Chat) : ViewModel() {
 
         viewModelScope.launch {
             _title.value = chat.getChatTitle()
-            _lastMessageText.value = (chat.lastMessage?.getSenderName() + ": " + chat.lastMessage?.getMessageContent())
+            _lastMessageText.value = chat.getLastMessageText()
             _unreadMessagesCount.intValue = chat.unreadCount
 
             if (chat.isForum()) {
@@ -60,7 +59,7 @@ class ChatListCellViewModel(chat: TdApi.Chat) : ViewModel() {
                     return@onEach
                 }
 
-                _lastMessageText.value = (it.lastMessage?.getSenderName() + ": " + it.lastMessage?.getMessageContent())
+                _lastMessageText.value = it.lastMessage?.getLastMessageText() ?: "❓"
 
                 if (chat.isForum()) {
                     _lastForumTopic.value = instance

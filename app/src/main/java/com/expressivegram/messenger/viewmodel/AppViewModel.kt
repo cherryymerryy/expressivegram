@@ -25,7 +25,7 @@ class AppViewModel : ViewModel() {
     private val _appState = mutableStateOf<AppState>(AppState.Loading)
     val appState: State<AppState> = _appState
 
-    private val tdUtility = TdUtility.getInstance()
+    private var tdUtility = TdUtility.getInstance()
 
     init {
         tdUtility.authState
@@ -54,24 +54,28 @@ class AppViewModel : ViewModel() {
     }
 
     private fun updateAppState(authState: TdApi.AuthorizationState) {
-        val newAppState = when (authState.constructor) {
-            TdApi.AuthorizationStateReady.CONSTRUCTOR -> AppState.LoggedIn
+        try {
+            val newAppState = when (authState.constructor) {
+                TdApi.AuthorizationStateReady.CONSTRUCTOR -> AppState.LoggedIn
 
-            TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR,
-            TdApi.AuthorizationStateClosing.CONSTRUCTOR,
-            TdApi.AuthorizationStateClosed.CONSTRUCTOR,
-            TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR -> AppState.Loading
+                TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR,
+                TdApi.AuthorizationStateClosing.CONSTRUCTOR,
+                TdApi.AuthorizationStateClosed.CONSTRUCTOR,
+                TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR -> AppState.Loading
 
-            else -> AppState.NeedsAuth
-        }
-
-        viewModelScope.launch {
-            if (!UserConfig.Companion.getInstance().isInitialized()) {
-                UserConfig.Companion.initialize()
+                else -> AppState.NeedsAuth
             }
-        }
 
-        Log.e("Mapping to AppState: ${newAppState.javaClass.simpleName}", "AppViewModel")
-        _appState.value = newAppState
+            viewModelScope.launch {
+                if (!UserConfig.getInstance().isInitialized() && authState.constructor == TdApi.AuthorizationStateReady.CONSTRUCTOR) {
+                    UserConfig.initialize()
+                }
+            }
+
+            Log.e("Mapping to AppState: ${newAppState.javaClass.simpleName}", "AppViewModel")
+            _appState.value = newAppState
+        } catch (ex: Exception) {
+            Log.e(ex)
+        }
     }
 }

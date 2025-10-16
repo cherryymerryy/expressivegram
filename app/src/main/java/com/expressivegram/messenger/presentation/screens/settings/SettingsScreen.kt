@@ -1,8 +1,6 @@
 package com.expressivegram.messenger.presentation.screens.settings
 
 import android.text.TextUtils
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.AddBusiness
 import androidx.compose.material.icons.rounded.Cake
 import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.CardGiftcard
 import androidx.compose.material.icons.rounded.ChatBubble
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.FolderCopy
@@ -39,24 +39,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers.GREEN_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expressivegram.messenger.BuildConfig
+import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.extensions.getMessageContent
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceCategory
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceItem
 import com.expressivegram.messenger.presentation.components.preferences.PreferencePosition
+import com.expressivegram.messenger.presentation.components.profile.ChatPhotoItem
+import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
 import com.expressivegram.messenger.viewmodel.settings.SettingsViewModel
+import kotlinx.coroutines.launch
+import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Preview(showBackground = true, showSystemUi = true, wallpaper = GREEN_DOMINATED_EXAMPLE)
@@ -73,6 +76,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     }
 
     val personalChat by viewModel.personalChat
+    val scope = rememberCoroutineScope()
 
     Column {
         Column(
@@ -88,17 +92,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     .padding(8.dp),
                 shape = MaterialTheme.shapes.extraLargeIncreased
             ) {
-                Image(
-                    modifier = Modifier
-                        .width(86.dp)
-                        .height(86.dp)
-                        .background(Color.Red)
-                        .clip(MaterialTheme.shapes.extraLargeIncreased),
-                    contentDescription = null,
-                    bitmap = ImageBitmap(64, 64),
-                    alignment = Alignment.TopCenter,
-                    contentScale = ContentScale.None,
-                    alpha = 1f,
+                ChatPhotoItem(
+                    name = me?.firstName + me?.lastName,
+                    photo = me?.profilePhoto?.small
                 )
             }
 
@@ -126,7 +122,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 4.dp)
                 .clip(
                     MaterialTheme.shapes.large.copy(
                         bottomStart = MaterialTheme.shapes.extraSmall.bottomStart,
@@ -144,12 +140,22 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                         PreferenceCategory(title = "Personal chat")
                     }
 
+                    var lastMessage = (personalChat?.lastMessage?.getMessageContent() ?: "❓ Unknown content")
+                    lastMessage = lastMessage.replace(
+                        regex = Regex(
+                            pattern = "\n",
+                            option = RegexOption.MULTILINE
+                        ),
+                        replacement = " "
+                    )
+
                     item {
                         PreferenceItem(
                             title = personalChat?.title ?: "None",
-                            subtitle = (personalChat?.lastMessage?.getMessageContent() ?: "❓ Unknown content").substring(30),
-                            icon = Icons.Rounded.Campaign,
+                            subtitle = lastMessage,
+                            icon = personalChat?.photo?.small ?: Icons.Rounded.Campaign,
                             position = PreferencePosition.Single,
+                            maxLines = 2
                         )
                     }
                 }
@@ -336,6 +342,35 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     subtitle = "${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_TYPE}",
                     icon = Icons.Rounded.QuestionAnswer,
                     position = PreferencePosition.Single
+                )
+            }
+
+            item {
+                PreferenceCategory(title = "App info")
+            }
+
+            item {
+                PreferenceItem(
+                    title = "Log out",
+                    subtitle = "Log out from current account.",
+                    icon = Icons.AutoMirrored.Rounded.Logout,
+                    position = PreferencePosition.Top,
+                    onClick = {
+                        val instance = TdUtility.getInstance()
+                        scope.launch {
+                            instance.getClient().execute(TdApi.LogOut())
+                            TdUtility.reload()
+                        }
+                    }
+                )
+            }
+
+            item {
+                PreferenceItem(
+                    title = "Delete account",
+                    subtitle = "Deletes Telegram account",
+                    icon = Icons.Rounded.Delete,
+                    position = PreferencePosition.Bottom
                 )
             }
 

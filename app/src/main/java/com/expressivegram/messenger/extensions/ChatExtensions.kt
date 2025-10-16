@@ -41,11 +41,20 @@ fun TdApi.Chat.isChannel(): Boolean {
         false
 }
 
-fun TdApi.Message.getForumTopicId(): Long {
-    return when (this.topicId) {
-        is TdApi.MessageTopicForum -> (topicId as TdApi.MessageTopicForum).forumTopicId
-        is TdApi.MessageTopicDirectMessages -> (topicId as TdApi.MessageTopicDirectMessages).directMessagesChatTopicId
-        is TdApi.MessageTopicSavedMessages -> (topicId as TdApi.MessageTopicSavedMessages).savedMessagesTopicId
-        else -> 0
+suspend fun TdApi.Chat.getLastMessageText(): String {
+    val text = this.lastMessage?.getMessageContent() ?: "❓ Unsupported message content"
+    val author = when (this.type) {
+        is TdApi.ChatTypeSupergroup -> {
+            if (this.isChannel()) {
+                ""
+            } else {
+                this.lastMessage?.getSenderName()
+            }
+        }
+        is TdApi.ChatTypeSecret -> ""
+        is TdApi.ChatTypePrivate -> ""
+        else -> this.lastMessage?.getSenderName()
     }
+
+    return author + (if ((author ?: "").isNotEmpty()) ": " else "") + text
 }

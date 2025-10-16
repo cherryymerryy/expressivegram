@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expressivegram.messenger.data.TdLibException
 import com.expressivegram.messenger.extensions.execute
+import com.expressivegram.messenger.extensions.send
 import com.expressivegram.messenger.utils.Log
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
@@ -49,12 +50,11 @@ class LoginViewModel : ViewModel() {
             .filterIsInstance<TdApi.UpdateAuthorizationState>()
             .onEach { update ->
                 val newState = update.authorizationState
-                Log.Companion.e("ViewModel", "Auth state UPDATED via flow: ${newState.javaClass.simpleName}")
                 _authState.value = newState
                 _inputValue.value = ""
 
                 if (newState is TdApi.AuthorizationStateReady) {
-                    UserConfig.Companion.initialize()
+                    UserConfig.initialize()
                 }
             }
             .launchIn(viewModelScope)
@@ -68,22 +68,19 @@ class LoginViewModel : ViewModel() {
         if (_isBusy.value) return
 
         val currentAuthState = _authState.value ?: return
+        _isBusy.value = true
 
         viewModelScope.launch {
-            _isBusy.value = true
             try {
                 when (currentAuthState.constructor) {
 
                     TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
                         val normalizedPhoneNumber = _inputValue.value.filter { it.isDigit() }
-                        Log.Companion.e("ViewModel", "Sending phone number: $normalizedPhoneNumber")
                         client.send(
                             TdApi.SetAuthenticationPhoneNumber(
                                 normalizedPhoneNumber,
                                 TdApi.PhoneNumberAuthenticationSettings()
-                            ),
-                            { Log.Companion.e(it.toString(), "LoginResult") },
-                            { Log.Companion.e(it, "LoginError") }
+                            )
                         )
                     }
 

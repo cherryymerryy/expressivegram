@@ -21,6 +21,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.expressivegram.messenger.BuildConfig
+import com.expressivegram.messenger.presentation.components.profile.ChatPhotoItem
+import org.drinkless.tdlib.TdApi
 
 @Composable
 fun PreferenceItem(
@@ -30,7 +33,8 @@ fun PreferenceItem(
     onClick: (() -> Unit)? = null,
     iconTint: Color = LocalContentColor.current,
     position: PreferencePosition = PreferencePosition.Single,
-    trailingContent: @Composable (() -> Unit)? = null
+    trailingContent: @Composable (() -> Unit)? = null,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     val shape = when (position) {
         PreferencePosition.Single -> MaterialTheme.shapes.large
@@ -82,6 +86,12 @@ fun PreferenceItem(
                     tint = iconTint,
                     modifier = Modifier.size(24.dp)
                 )
+
+                is TdApi.File -> ChatPhotoItem(
+                    name = BuildConfig.APPLICATION_ID,
+                    photo = icon,
+                    modifier = Modifier.size(24.dp)
+                )
             }
 
             Column(
@@ -98,6 +108,7 @@ fun PreferenceItem(
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
+                        maxLines = maxLines,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

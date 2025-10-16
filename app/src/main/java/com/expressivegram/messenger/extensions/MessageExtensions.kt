@@ -52,3 +52,32 @@ suspend fun TdApi.Message.getSenderName(): String {
         else -> "$chatId"
     }
 }
+
+fun TdApi.Message.getForumTopicId(): Long {
+    return when (this.topicId) {
+        is TdApi.MessageTopicForum -> (topicId as TdApi.MessageTopicForum).forumTopicId
+        is TdApi.MessageTopicDirectMessages -> (topicId as TdApi.MessageTopicDirectMessages).directMessagesChatTopicId
+        is TdApi.MessageTopicSavedMessages -> (topicId as TdApi.MessageTopicSavedMessages).savedMessagesTopicId
+        else -> 0
+    }
+}
+
+suspend fun TdApi.Message.getLastMessageText(): String {
+    val instance = TdUtility.getInstance().getClient()
+    val chat = instance.execute(TdApi.GetChat(this.chatId))
+    val text = this.getMessageContent()
+    val author = when (chat.type) {
+        is TdApi.ChatTypeSupergroup -> {
+            if (chat.isChannel()) {
+                ""
+            } else {
+                this.getSenderName()
+            }
+        }
+        is TdApi.ChatTypeSecret -> ""
+        is TdApi.ChatTypePrivate -> ""
+        else -> this.getSenderName()
+    }
+
+    return author + (if (author.isNotEmpty()) ": " else "") + text
+}

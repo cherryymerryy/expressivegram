@@ -3,15 +3,18 @@ package com.expressivegram.messenger.presentation.screens.chatslist.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
 @Composable
@@ -20,7 +23,10 @@ fun FoldersListCell(folders: List<TdApi.ChatFolderInfo?>?, onClick: (Int) -> Uni
         return
     }
 
+    val lazyListState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(0) }
+
     val fullFolders = folders.toMutableList()
     fullFolders.add(0, null)
 
@@ -38,6 +44,11 @@ fun FoldersListCell(folders: List<TdApi.ChatFolderInfo?>?, onClick: (Int) -> Uni
                     }
 
                     selectedIndex = index
+
+                    scope.launch {
+                        lazyListState.animateScrollToItem(selectedIndex)
+                    }
+
                     onClick(selectedIndex)
                 },
                 label = {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ fun ChatListScreen(
     val isFoldersLoading by viewModel.isFoldersLoading
     val chats by viewModel.chats.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(key1 = chatList) {
         viewModel.loadChats(chatList)
@@ -64,6 +66,8 @@ fun ChatListScreen(
                                 TdApi.ChatListFolder(folders[index - 1].id)
                             }
                         )
+
+                        lazyListState.animateScrollToItem(0)
                     }
                 }
             )
@@ -83,7 +87,8 @@ fun ChatListScreen(
                 .fillMaxHeight()
                 .fillMaxWidth()
                 .padding(vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            state = lazyListState
         ) {
             if (chats.isNotEmpty()) {
                 items(chats, key = { it.id }) { chat ->

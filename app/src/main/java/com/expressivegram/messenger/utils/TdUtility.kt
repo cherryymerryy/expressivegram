@@ -6,6 +6,7 @@ import com.expressivegram.messenger.BuildConfig
 import com.expressivegram.messenger.TELEGRAM_DATABASE_PATH
 import com.expressivegram.messenger.TELEGRAM_FILES_PATH
 import com.expressivegram.messenger.TELEGRAM_PATH
+import com.expressivegram.messenger.extensions.send
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -99,7 +100,7 @@ class TdUtility private constructor() {
         fun initialize() {
             val util = getInstance()
             if (util::client.isInitialized) {
-                util.getClient().send(TdApi.GetAuthorizationState(), null)
+                util.getClient().send(TdApi.GetAuthorizationState())
                 return
             }
 
@@ -129,6 +130,11 @@ class TdUtility private constructor() {
                 useTestDc = false
             }
             util.client.send(params, null)
+        }
+
+        fun reload() {
+            instance = null
+            initialize()
         }
     }
 }

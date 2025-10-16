@@ -37,10 +37,7 @@ class ChatViewModel : ViewModel() {
                         }
 
                         _messages.update { currentList ->
-                            val newList = currentList.toMutableList()
-                            newList.removeAll { it.id == update.message.id }
-                            newList.add(newList.lastIndex + 1, update.message)
-                            newList
+                            listOf(update.message) + currentList
                         }
                     }
                     .launchIn(viewModelScope)
