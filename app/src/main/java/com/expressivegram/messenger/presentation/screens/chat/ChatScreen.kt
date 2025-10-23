@@ -1,14 +1,13 @@
 package com.expressivegram.messenger.presentation.screens.chat
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +48,9 @@ fun ChatScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxHeight(),
+        modifier = Modifier
+            .fillMaxHeight()
+            .imePadding(),
         topBar = {
             ChatTopBar(
                 chat,
@@ -95,7 +96,7 @@ fun ChatScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             reverseLayout = true
         ) {
-            items(messages) { msg ->
+            items(messages, key = { it.id }) { msg ->
                 MessageCell(msg)
             }
         }

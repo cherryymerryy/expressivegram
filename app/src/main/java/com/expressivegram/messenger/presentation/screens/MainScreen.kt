@@ -2,16 +2,22 @@ package com.expressivegram.messenger.presentation.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -22,6 +28,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.expressivegram.messenger.presentation.navigation.CallsList
 import com.expressivegram.messenger.presentation.navigation.Chat
 import com.expressivegram.messenger.presentation.navigation.ChatsList
+import com.expressivegram.messenger.presentation.navigation.ContactsList
 import com.expressivegram.messenger.presentation.navigation.Settings
 import com.expressivegram.messenger.presentation.navigation.TopLevelBackStack
 import com.expressivegram.messenger.presentation.navigation.components.CustomBottomNav
@@ -30,6 +37,7 @@ import com.expressivegram.messenger.presentation.screens.callslist.CallsListScre
 import com.expressivegram.messenger.presentation.screens.chat.ChatScreen
 import com.expressivegram.messenger.presentation.screens.chatslist.ChatListScreen
 import com.expressivegram.messenger.presentation.screens.settings.SettingsScreen
+import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -38,6 +46,7 @@ fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
     val topLevelBackStack = remember { TopLevelBackStack<NavKey>(ChatsList) }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         modifier = Modifier
@@ -63,6 +72,23 @@ fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
                 }
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Create chat",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Create,
+                    contentDescription = "createChat"
+                )
+            }
+        },
         containerColor = MaterialTheme.colorScheme.surface
     ) { ip ->
         NavDisplay(
@@ -74,6 +100,9 @@ fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
                 rememberViewModelStoreNavEntryDecorator()
             ),
             entryProvider = entryProvider {
+                entry<ContactsList> {
+                    CallsListScreen()
+                }
                 entry<CallsList> {
                     CallsListScreen()
                 }
@@ -91,7 +120,7 @@ fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
                 entry<Chat> { args ->
                     ChatScreen(
                         chatId = args.id,
-                        onBackClick = { mainTopLevelBackStack.removeLast() }
+                        onBackClick = mainTopLevelBackStack::removeLast
                     )
                 }
             }

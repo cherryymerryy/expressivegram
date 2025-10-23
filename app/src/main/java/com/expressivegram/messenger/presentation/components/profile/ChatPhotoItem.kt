@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.expressivegram.messenger.BuildConfig
-import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.utils.DownloadController
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.getInitials

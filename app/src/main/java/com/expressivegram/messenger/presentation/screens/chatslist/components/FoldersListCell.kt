@@ -27,8 +27,11 @@ fun FoldersListCell(folders: List<TdApi.ChatFolderInfo?>?, onClick: (Int) -> Uni
     val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(0) }
 
-    val fullFolders = folders.toMutableList()
-    fullFolders.add(0, null)
+    val fullFolders = remember(folders) {
+        val list = folders.toMutableList()
+        list.add(0, null)
+        list
+    }
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(4.dp)

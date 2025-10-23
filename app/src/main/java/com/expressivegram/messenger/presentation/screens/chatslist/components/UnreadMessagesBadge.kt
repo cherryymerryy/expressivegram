@@ -5,9 +5,9 @@ import androidx.compose.material.icons.outlined.Adjust
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 @Composable
 fun UnreadMessagesBadge(unreadMessagesCount: Int) {
@@ -15,8 +15,8 @@ fun UnreadMessagesBadge(unreadMessagesCount: Int) {
         badge = {
             if (unreadMessagesCount > 0) {
                 Badge(
-                    containerColor = Color.Red,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
                 ) {
                     Text("$unreadMessagesCount")
                 }

@@ -12,38 +12,21 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.expressivegram.messenger.extensions.isForum
+import com.expressivegram.messenger.data.ChatListItemState
 import com.expressivegram.messenger.presentation.components.profile.ChatPhotoItem
-import com.expressivegram.messenger.viewmodel.chatlist.ChatListCellViewModel
-import com.expressivegram.messenger.viewmodel.chatlist.ChatListCellViewModelFactory
-import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ChatListCell(
-    chat: TdApi.Chat,
-    onClick: () -> Unit
+    item: ChatListItemState,
+    onClick: (Long) -> Unit
 ) {
-    val viewModelFactory = ChatListCellViewModelFactory(chat)
-    val viewModel: ChatListCellViewModel = viewModel(
-        key = chat.id.toString(),
-        factory = viewModelFactory
-    )
-
-    val title by viewModel.title
-    val lastMessageText by viewModel.lastMessageText
-    val unreadMessagesCount by viewModel.unreadMessagesCount
-    val lastForumTopic by viewModel.lastForumTopic
-    val isForum = chat.isForum()
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+        onClick = { onClick(item.chatId) }
     ) {
         Row(
             modifier = Modifier
@@ -52,8 +35,8 @@ fun ChatListCell(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ChatPhotoItem(
-                name = title,
-                photo = chat.photo?.small
+                name = item.title,
+                photo = item.photo
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -63,14 +46,14 @@ fun ChatListCell(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = title,
+                    text = item.title,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1
                 )
 
-                if (isForum && lastForumTopic != null) {
+                if (item.isForum && item.lastForumTopicName != null) {
                     Text(
-                        text = lastForumTopic?.info?.name ?: "❌ Unknown topic",
+                        text = item.lastForumTopicName!!,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 1
@@ -78,7 +61,7 @@ fun ChatListCell(
                 }
 
                 Text(
-                    text = lastMessageText,
+                    text = item.lastMessageText,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1
@@ -90,7 +73,7 @@ fun ChatListCell(
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                UnreadMessagesBadge(unreadMessagesCount)
+                UnreadMessagesBadge(item.unreadCount)
             }
         }
     }

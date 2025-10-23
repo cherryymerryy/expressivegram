@@ -58,6 +58,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -132,6 +133,7 @@ dependencies {
     implementation(libs.coil3.coil.compose)
     implementation(libs.coil3.coil.network.okhttp)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.compose.ui.tooling)
 
     // Testing
     testImplementation(libs.junit)

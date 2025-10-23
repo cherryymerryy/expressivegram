@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expressivegram.messenger.data.TdLibException
 import com.expressivegram.messenger.extensions.execute
-import com.expressivegram.messenger.extensions.send
 import com.expressivegram.messenger.utils.Log
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
@@ -18,10 +17,8 @@ import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
 class LoginViewModel : ViewModel() {
-    private val tdUtility = TdUtility.Companion.getInstance()
-    private val client = tdUtility.getClient()
-
     private val _authState = mutableStateOf<TdApi.AuthorizationState?>(null)
+    val authState: State<TdApi.AuthorizationState?> = _authState
 
     val placeholderText: State<String> = derivedStateOf {
         when (_authState.value?.constructor) {
@@ -29,29 +26,38 @@ class LoginViewModel : ViewModel() {
             TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> "Phone number"
 
             TdApi.AuthorizationStateWaitCode.CONSTRUCTOR -> "Confirmation code"
-            TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR -> "Password"
+            TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR -> "Password, hint: ${(authState.value as TdApi.AuthorizationStateWaitPassword).passwordHint}"
             TdApi.AuthorizationStateReady.CONSTRUCTOR -> "Logged in!"
             else -> "Loading..."
         }
     }
 
-    private val _inputValue = mutableStateOf("")
-    val inputValue: State<String> = _inputValue
-
     private val _isBusy = mutableStateOf(false)
     val isBusy: State<Boolean> = _isBusy
 
+    private val _isError = mutableStateOf(false)
+    val isError: State<Boolean> = _isError
+
+    private val _isSecureField = mutableStateOf(false)
+    val isSecureField: State<Boolean> = _isSecureField
+
     init {
+        val instance = TdUtility.getInstance()
+
         viewModelScope.launch {
-            _authState.value = client.execute(TdApi.GetAuthorizationState())
+            _authState.value = instance.getClient().execute(TdApi.GetAuthorizationState())
         }
 
-        tdUtility.updates
+        instance.updates
             .filterIsInstance<TdApi.UpdateAuthorizationState>()
             .onEach { update ->
                 val newState = update.authorizationState
                 _authState.value = newState
-                _inputValue.value = ""
+
+                _isSecureField.value = when (newState) {
+                    is TdApi.AuthorizationStateWaitPassword -> true
+                    else -> false
+                }
 
                 if (newState is TdApi.AuthorizationStateReady) {
                     UserConfig.initialize()
@@ -60,36 +66,42 @@ class LoginViewModel : ViewModel() {
             .launchIn(viewModelScope)
     }
 
-    fun onInputValueChange(newValue: String) {
-        _inputValue.value = newValue
-    }
-
-    fun onNextClicked() {
+    fun onNextClicked(input: String) {
         if (_isBusy.value) return
 
         val currentAuthState = _authState.value ?: return
+
         _isBusy.value = true
+        _isError.value = false
+
+        val instance = TdUtility.getInstance().getClient()
 
         viewModelScope.launch {
             try {
                 when (currentAuthState.constructor) {
 
                     TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
-                        val normalizedPhoneNumber = _inputValue.value.filter { it.isDigit() }
-                        client.send(
+                        val normalizedPhoneNumber = input.filter { it.isDigit() }
+                        instance.send(
                             TdApi.SetAuthenticationPhoneNumber(
                                 normalizedPhoneNumber,
                                 TdApi.PhoneNumberAuthenticationSettings()
                             )
-                        )
+                        ) {
+                            _isError.value = it is TdApi.Error
+                        }
                     }
 
                     TdApi.AuthorizationStateWaitCode.CONSTRUCTOR -> {
-                        client.execute(TdApi.CheckAuthenticationCode(_inputValue.value))
+                        instance.send(TdApi.CheckAuthenticationCode(input)) {
+                            _isError.value = it is TdApi.Error
+                        }
                     }
 
                     TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR -> {
-                        client.execute(TdApi.CheckAuthenticationPassword(_inputValue.value))
+                        instance.send(TdApi.CheckAuthenticationPassword(input)) {
+                            _isError.value = it is TdApi.Error
+                        }
                     }
 
                     else -> {
@@ -102,6 +114,7 @@ class LoginViewModel : ViewModel() {
                 Log.Companion.e(e, "ViewModel", "An unexpected error occurred")
             } finally {
                 _isBusy.value = false
+                _isError.value = false
             }
         }
     }

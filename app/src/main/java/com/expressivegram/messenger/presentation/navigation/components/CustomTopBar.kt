@@ -22,10 +22,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import com.expressivegram.messenger.utils.TdUtility
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.drinkless.tdlib.TdApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -33,6 +43,24 @@ fun CustomTopBar() {
     val searchBarState = rememberSearchBarState()
     val textFieldState = rememberTextFieldState()
     val scope = rememberCoroutineScope()
+    var searchPlaceholder by remember { mutableStateOf("Search...") }
+
+    val instance = TdUtility.getInstance()
+
+    LaunchedEffect(searchPlaceholder) {
+        instance.updates
+            .filterIsInstance<TdApi.UpdateConnectionState>()
+            .onEach { updateConnectionState ->
+                searchPlaceholder = when (updateConnectionState.state.constructor) {
+                    TdApi.ConnectionStateUpdating.CONSTRUCTOR -> "Updating..."
+                    TdApi.ConnectionStateConnecting.CONSTRUCTOR -> "Connecting..."
+                    TdApi.ConnectionStateWaitingForNetwork.CONSTRUCTOR -> "Waiting for Network..."
+                    TdApi.ConnectionStateConnectingToProxy.CONSTRUCTOR -> "Connecting to Proxy..."
+                    else -> "Search"
+                }
+            }
+            .launchIn(scope)
+    }
 
     val inputField =
         @Composable {
@@ -42,7 +70,10 @@ fun CustomTopBar() {
                 textFieldState = textFieldState,
                 onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
                 placeholder = {
-                    Text(modifier = Modifier.clearAndSetSemantics {}, text = "Search...")
+                    Text(
+                        modifier = Modifier.clearAndSetSemantics {},
+                        text = searchPlaceholder
+                    )
                 },
                 leadingIcon = {
                     if (searchBarState.currentValue == SearchBarValue.Expanded) {

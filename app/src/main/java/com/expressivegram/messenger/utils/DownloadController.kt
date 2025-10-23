@@ -34,17 +34,23 @@ class DownloadController {
     }
 
     fun downloadFile(fileId: Int, synchronous: Boolean = true) {
-        TdUtility
-            .getInstance()
-            .getClient()
-            .send(
-                TdApi.DownloadFile(
-                    fileId,
-                    1,
-                    0,
-                    0,
-                    synchronous
+        val client = TdUtility.getInstance().getClient()
+        client.send(TdApi.GetFile(fileId)) {
+            if (it !is TdApi.File) {
+                return@send
+            }
+
+            if (!it.local.isDownloadingCompleted) {
+                client.send(
+                    TdApi.DownloadFile(
+                        fileId,
+                        1,
+                        0,
+                        0,
+                        synchronous
+                    )
                 )
-            )
+            }
+        }
     }
 }

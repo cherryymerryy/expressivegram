@@ -1,7 +1,6 @@
 package com.expressivegram.messenger.presentation.screens
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -17,7 +16,6 @@ import com.expressivegram.messenger.presentation.screens.chat.ChatScreen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApplicationNavigation() {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val topLevelBackStack = remember { TopLevelBackStack<NavKey>(Main) }
 
     NavDisplay(

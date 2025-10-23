@@ -19,7 +19,7 @@ private val DarkColorScheme = darkColorScheme(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun QDownloaderTheme(
+fun ExpressivegramTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit

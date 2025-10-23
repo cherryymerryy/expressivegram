@@ -38,7 +38,7 @@ fun ChatListScreen(
     viewModel: ChatListViewModel = viewModel()
 ) {
     val isFoldersLoading by viewModel.isFoldersLoading
-    val chats by viewModel.chats.collectAsStateWithLifecycle()
+    val chats by viewModel.chatItems.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
 
@@ -76,14 +76,7 @@ fun ChatListScreen(
         LazyColumn(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
-                .clip(
-                    MaterialTheme.shapes.large.copy(
-                        bottomStart = MaterialTheme.shapes.large.bottomStart,
-                        bottomEnd = MaterialTheme.shapes.large.bottomEnd,
-                        topStart = MaterialTheme.shapes.large.topStart,
-                        topEnd = MaterialTheme.shapes.large.topEnd
-                    )
-                )
+                .clip(MaterialTheme.shapes.large)
                 .fillMaxHeight()
                 .fillMaxWidth()
                 .padding(vertical = 6.dp),
@@ -91,10 +84,10 @@ fun ChatListScreen(
             state = lazyListState
         ) {
             if (chats.isNotEmpty()) {
-                items(chats, key = { it.id }) { chat ->
+                items(chats, key = { it.chatId }) { item ->
                     ChatListCell(
-                        chat = chat,
-                        onClick = { onChatClick(chat.id) }
+                        item = item,
+                        onClick = onChatClick
                     )
                 }
             } else {

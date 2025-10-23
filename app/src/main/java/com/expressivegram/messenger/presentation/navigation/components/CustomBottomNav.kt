@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.NavKey
 import com.expressivegram.messenger.presentation.navigation.CallsList
 import com.expressivegram.messenger.presentation.navigation.ChatsList
+import com.expressivegram.messenger.presentation.navigation.ContactsList
 import com.expressivegram.messenger.presentation.navigation.Settings
 import com.expressivegram.messenger.presentation.navigation.TopLevelBackStack
 
@@ -16,7 +17,7 @@ import com.expressivegram.messenger.presentation.navigation.TopLevelBackStack
 fun CustomBottomNav(
     topLevelBackStack: TopLevelBackStack<NavKey>
 ) {
-    val navigationItems = listOf(CallsList, ChatsList, Settings)
+    val navigationItems = listOf(ContactsList, CallsList, ChatsList, Settings)
 
     NavigationBar {
         navigationItems.forEach { item ->
@@ -29,7 +30,7 @@ fun CustomBottomNav(
                 },
                 icon = {
                     Icon(
-                        imageVector = item.icon,
+                        imageVector = if (isSelected) item.selectedIcon else item.icon,
                         contentDescription = item.title,
                     )
                 },

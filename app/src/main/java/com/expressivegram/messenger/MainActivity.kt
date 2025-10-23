@@ -7,12 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expressivegram.messenger.presentation.screens.ApplicationNavigation
-import com.expressivegram.messenger.presentation.screens.MainScreen
 import com.expressivegram.messenger.presentation.screens.auth.LoginScreen
 import com.expressivegram.messenger.presentation.screens.loading.LoadingScreen
-import com.expressivegram.messenger.presentation.theme.QDownloaderTheme
+import com.expressivegram.messenger.presentation.theme.ExpressivegramTheme
 import com.expressivegram.messenger.viewmodel.AppState
 import com.expressivegram.messenger.viewmodel.AppViewModel
 
@@ -21,8 +22,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+
         setContent {
-            QDownloaderTheme {
+            ExpressivegramTheme {
                 AppContent()
             }
         }
