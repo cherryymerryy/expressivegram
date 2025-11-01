@@ -49,11 +49,12 @@ import androidx.compose.ui.tooling.preview.Wallpapers.GREEN_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expressivegram.messenger.BuildConfig
+import com.expressivegram.messenger.data.ChatType
 import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.extensions.getMessageContent
+import com.expressivegram.messenger.presentation.components.preferences.ListItemPosition
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceCategory
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceItem
-import com.expressivegram.messenger.presentation.components.preferences.PreferencePosition
 import com.expressivegram.messenger.presentation.components.profile.ChatPhotoItem
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
@@ -94,7 +95,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
             ) {
                 ChatPhotoItem(
                     name = me?.firstName + me?.lastName,
-                    photo = me?.profilePhoto?.small
+                    photo = me?.profilePhoto?.small,
+                    chatType = ChatType.Private
                 )
             }
 
@@ -154,7 +156,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                             title = personalChat?.title ?: "None",
                             subtitle = lastMessage,
                             icon = personalChat?.photo?.small ?: Icons.Rounded.Campaign,
-                            position = PreferencePosition.Single,
+                            position = ListItemPosition.Single,
                             maxLines = 2
                         )
                     }
@@ -172,7 +174,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                         title = me.phoneNumber ?: "None",
                         subtitle = "Phone number",
                         icon = Icons.Rounded.Phone,
-                        position = PreferencePosition.Top,
+                        position = ListItemPosition.Top,
                     )
                 }
             }
@@ -183,7 +185,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                         title = fullInfo.bio?.text ?: "None",
                         subtitle = "Bio",
                         icon = Icons.Rounded.Description,
-                        position = PreferencePosition.Middle,
+                        position = ListItemPosition.Middle,
                     )
                 }
             }
@@ -194,7 +196,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                         title = fullInfo.birthdate.toString(),
                         subtitle = "Date of birth",
                         icon = Icons.Rounded.Cake,
-                        position = PreferencePosition.Middle
+                        position = ListItemPosition.Middle
                     )
                 }
             }
@@ -204,7 +206,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     title = me?.id.toString(),
                     subtitle = "ID",
                     icon = Icons.Rounded.Info,
-                    position = PreferencePosition.Bottom
+                    position = ListItemPosition.Bottom
                 )
             }
 
@@ -216,7 +218,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Chat Settings",
                     icon = Icons.Rounded.ChatBubble,
-                    position = PreferencePosition.Top
+                    position = ListItemPosition.Top
                 )
             }
 
@@ -224,7 +226,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Privacy and Security",
                     icon = Icons.Rounded.Lock,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -232,7 +234,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Notifications and Sounds",
                     icon = Icons.Rounded.Notifications,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -240,7 +242,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Data and Storage",
                     icon = Icons.Rounded.Storage,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -248,7 +250,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Power Saving",
                     icon = Icons.Rounded.Power,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -256,7 +258,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Chat Folders",
                     icon = Icons.Rounded.FolderCopy,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -264,7 +266,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Devices",
                     icon = Icons.Rounded.Devices,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -272,7 +274,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Language",
                     icon = Icons.Rounded.Language,
-                    position = PreferencePosition.Bottom
+                    position = ListItemPosition.Bottom
                 )
             }
 
@@ -284,7 +286,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Telegram Premium",
                     icon = Icons.Rounded.WorkspacePremium,
-                    position = PreferencePosition.Top
+                    position = ListItemPosition.Top
                 )
             }
 
@@ -292,7 +294,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "My Stars",
                     icon = Icons.Rounded.Star,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -300,7 +302,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Telegram Business",
                     icon = Icons.Rounded.AddBusiness,
-                    position = PreferencePosition.Middle
+                    position = ListItemPosition.Middle
                 )
             }
 
@@ -308,7 +310,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Send a Gift",
                     icon = Icons.Rounded.CardGiftcard,
-                    position = PreferencePosition.Bottom
+                    position = ListItemPosition.Bottom
                 )
             }
 
@@ -320,7 +322,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Ask a Question",
                     icon = Icons.Rounded.QuestionAnswer,
-                    position = PreferencePosition.Top
+                    position = ListItemPosition.Top
                 )
             }
 
@@ -328,7 +330,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 PreferenceItem(
                     title = "Privacy Policy",
                     icon = Icons.Rounded.PrivacyTip,
-                    position = PreferencePosition.Bottom
+                    position = ListItemPosition.Bottom
                 )
             }
 
@@ -341,7 +343,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     title = "expressivegram",
                     subtitle = "${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_TYPE}",
                     icon = Icons.Rounded.QuestionAnswer,
-                    position = PreferencePosition.Single
+                    position = ListItemPosition.Single
                 )
             }
 
@@ -354,7 +356,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     title = "Log out",
                     subtitle = "Log out from current account.",
                     icon = Icons.AutoMirrored.Rounded.Logout,
-                    position = PreferencePosition.Top,
+                    position = ListItemPosition.Top,
                     onClick = {
                         val instance = TdUtility.getInstance()
                         scope.launch {
@@ -370,7 +372,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     title = "Delete account",
                     subtitle = "Deletes Telegram account",
                     icon = Icons.Rounded.Delete,
-                    position = PreferencePosition.Bottom
+                    position = ListItemPosition.Bottom
                 )
             }
 

@@ -1,26 +1,16 @@
 package com.expressivegram.messenger.presentation.navigation.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExpandedFullScreenSearchBar
+import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.SearchBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSearchBarState
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,19 +19,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.expressivegram.messenger.utils.TdUtility
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3Api
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun CustomTopBar() {
-    val searchBarState = rememberSearchBarState()
-    val textFieldState = rememberTextFieldState()
     val scope = rememberCoroutineScope()
     var searchPlaceholder by remember { mutableStateOf("Search...") }
 
@@ -62,58 +51,29 @@ fun CustomTopBar() {
             .launchIn(scope)
     }
 
-    val inputField =
-        @Composable {
+    val searchBarState = rememberSearchBarState()
+    val textFieldState = rememberTextFieldState()
+
+    AppBarWithSearch(
+        modifier = Modifier
+            .padding(bottom = 16.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainer),
+        state = rememberSearchBarState(),
+        inputField = {
             SearchBarDefaults.InputField(
                 modifier = Modifier,
                 searchBarState = searchBarState,
                 textFieldState = textFieldState,
-                onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
+                onSearch = {
+                },
                 placeholder = {
                     Text(
-                        modifier = Modifier.clearAndSetSemantics {},
-                        text = searchPlaceholder
+                        modifier = Modifier.fillMaxWidth(),
+                        text = searchPlaceholder,
+                        textAlign = TextAlign.Center
                     )
-                },
-                leadingIcon = {
-                    if (searchBarState.currentValue == SearchBarValue.Expanded) {
-                        TooltipBox(
-                            positionProvider =
-                                TooltipDefaults.rememberTooltipPositionProvider(
-                                    TooltipAnchorPosition.Above
-                                ),
-                            tooltip = { PlainTooltip { Text("Back") } },
-                            state = rememberTooltipState(),
-                        ) {
-                            IconButton(
-                                onClick = { scope.launch { searchBarState.animateToCollapsed() } }
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Default.ArrowBack,
-                                    contentDescription = "Back",
-                                )
-                            }
-                        }
-                    } else {
-                        Icon(Icons.Default.Search, contentDescription = null)
-                    }
-                },
-                trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
+                }
             )
-        }
-
-    TopAppBar(
-        title = {
-            SearchBar(
-                state = searchBarState,
-                inputField = inputField
-            )
-            ExpandedFullScreenSearchBar(
-                state = searchBarState,
-                inputField = inputField
-            ) {
-
-            }
         }
     )
 }

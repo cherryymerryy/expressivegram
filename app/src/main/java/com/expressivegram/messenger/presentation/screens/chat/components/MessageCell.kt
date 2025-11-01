@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.expressivegram.messenger.data.ChatType
 import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.extensions.getMessageContent
 import com.expressivegram.messenger.extensions.getSenderId
@@ -57,6 +58,7 @@ fun MessageCell(
             ChatPhotoItem(
                 name = senderName,
                 photo = user?.profilePhoto?.small,
+                chatType = ChatType.Private,
                 modifier = Modifier.align(alignment = Alignment.Bottom)
             )
         }

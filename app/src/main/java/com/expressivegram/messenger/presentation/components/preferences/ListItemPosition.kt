@@ -1,6 +1,6 @@
 package com.expressivegram.messenger.presentation.components.preferences
 
-enum class PreferencePosition {
+enum class ListItemPosition {
     Single,
     Top,
     Middle,

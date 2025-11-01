@@ -39,7 +39,7 @@ class TdUtility private constructor() {
     val authState = _authState.asStateFlow()
 
     init {
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             _updates
                 .filterIsInstance<TdApi.UpdateAuthorizationState>()
                 .map { it.authorizationState }
@@ -72,7 +72,7 @@ class TdUtility private constructor() {
         }
 
         val updateHandler = Client.ResultHandler { update ->
-            scope.launch {
+            scope.launch(Dispatchers.IO) {
                 _updates.emit(update)
             }
         }

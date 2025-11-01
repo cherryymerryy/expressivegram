@@ -4,8 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialShapes.Companion.Cookie12Sided
+import androidx.compose.material3.MaterialShapes.Companion.Pill
+import androidx.compose.material3.MaterialShapes.Companion.Slanted
+import androidx.compose.material3.MaterialShapes.Companion.Square
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.expressivegram.messenger.BuildConfig
+import com.expressivegram.messenger.data.ChatType
 import com.expressivegram.messenger.utils.DownloadController
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.getInitials
@@ -30,11 +37,23 @@ import kotlinx.coroutines.flow.onEach
 import org.drinkless.tdlib.TdApi
 import java.io.File
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ChatPhotoItem(name: String, photo: TdApi.File?, modifier: Modifier = Modifier) {
+fun ChatPhotoItem(
+    name: String,
+    photo: TdApi.File?,
+    modifier: Modifier = Modifier,
+    chatType: ChatType
+) {
     val backgroundColor = MaterialTheme.colorScheme.primary
     val size = 48.dp
-    val shape = CircleShape
+    val shape = when (chatType) {
+        ChatType.Channel -> Slanted.toShape()
+        ChatType.Forum -> Square.toShape()
+        ChatType.Group -> Pill.toShape()
+        ChatType.Secret -> Cookie12Sided.toShape()
+        else -> CircleShape
+    }
 
     val scope = rememberCoroutineScope()
     var url by remember { mutableStateOf("") }

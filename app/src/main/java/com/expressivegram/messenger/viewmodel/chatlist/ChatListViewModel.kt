@@ -5,11 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expressivegram.messenger.data.ChatListItemState
+import com.expressivegram.messenger.data.ChatType
 import com.expressivegram.messenger.data.TdLibException
 import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.extensions.getChatTitle
 import com.expressivegram.messenger.extensions.getForumTopicId
 import com.expressivegram.messenger.extensions.getLastMessageText
+import com.expressivegram.messenger.extensions.getSenderId
+import com.expressivegram.messenger.extensions.isChannel
 import com.expressivegram.messenger.extensions.isForum
 import com.expressivegram.messenger.utils.Log
 import com.expressivegram.messenger.utils.TdUtility
@@ -203,14 +206,33 @@ class ChatListViewModel : ViewModel() {
                             defaultTopicName
                         }
 
+                        val isFromMe = chat.lastMessage?.getSenderId() == UserConfig.getInstance().getCurrentUser()?.id
+
                         Pair(chat, ChatListItemState(
                             chatId = chat.id,
-                            photo = chat.photo?.small,
                             title = chat.getChatTitle(),
+                            chatType = when (chat.type) {
+                                is TdApi.ChatTypePrivate -> ChatType.Private
+                                is TdApi.ChatTypeSecret -> ChatType.Secret
+                                is TdApi.ChatTypeBasicGroup -> ChatType.Group
+                                is TdApi.ChatTypeSupergroup -> {
+                                    if (chat.isForum()) {
+                                        ChatType.Forum
+                                    } else if (chat.isChannel()) {
+                                        ChatType.Channel
+                                    } else {
+                                        ChatType.Group
+                                    }
+                                }
+                                else -> ChatType.Group
+                            },
+                            photo = chat.photo?.small,
                             lastMessageText = chat.getLastMessageText(),
                             unreadCount = chat.unreadCount,
                             isForum = chat.isForum(),
-                            lastForumTopicName = topicName
+                            lastForumTopicName = topicName,
+                            isFromMe = isFromMe,
+                            isViewed = isFromMe
                         ))
                     } catch (e: TdLibException) {
                         Log.e(e, "Failed to load chat $id")

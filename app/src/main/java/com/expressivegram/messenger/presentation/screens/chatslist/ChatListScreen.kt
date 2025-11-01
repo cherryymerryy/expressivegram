@@ -4,11 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -20,11 +22,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.expressivegram.messenger.presentation.components.preferences.ListItemPosition
 import com.expressivegram.messenger.presentation.screens.chatslist.components.ChatListCell
 import com.expressivegram.messenger.presentation.screens.chatslist.components.FoldersListCell
+import com.expressivegram.messenger.presentation.theme.ExpressivegramTheme
 import com.expressivegram.messenger.utils.UserConfig
 import com.expressivegram.messenger.viewmodel.chatlist.ChatListViewModel
 import kotlinx.coroutines.launch
@@ -48,25 +54,29 @@ fun ChatListScreen(
 
     Column(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .fillMaxHeight()
-            .fillMaxWidth()
+            .fillMaxSize()
+            .clip(
+                shape = MaterialTheme.shapes.small.copy(
+                    topStart = MaterialTheme.shapes.extraLargeIncreased.topStart,
+                    topEnd = MaterialTheme.shapes.extraLargeIncreased.topEnd,
+                    bottomStart = CornerSize(0.dp),
+                    bottomEnd = CornerSize(0.dp)
+                )
+            )
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        if (!isFoldersLoading || UserConfig.getInstance().getFolders() != null) {
-            val folders = UserConfig.getInstance().getFolders()!!
-
+        val folders = UserConfig.getInstance().getFolders()
+        if (!isFoldersLoading && folders != null) {
             FoldersListCell(
                 folders = folders,
                 onClick = { index ->
-                    scope.launch {
-                        viewModel.loadChats(
-                            chatList = if (index == 0) {
-                                TdApi.ChatListMain()
-                            } else {
-                                TdApi.ChatListFolder(folders[index - 1].id)
-                            }
-                        )
+                    val list = when (index) {
+                        0 -> TdApi.ChatListMain()
+                        else -> TdApi.ChatListFolder(folders[index - 1].id)
+                    }
 
+                    scope.launch {
+                        viewModel.loadChats(list)
                         lazyListState.animateScrollToItem(0)
                     }
                 }
@@ -74,20 +84,29 @@ fun ChatListScreen(
         }
 
         LazyColumn(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .clip(MaterialTheme.shapes.large)
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
             state = lazyListState
         ) {
             if (chats.isNotEmpty()) {
-                items(chats, key = { it.chatId }) { item ->
+                itemsIndexed(
+                    items = chats,
+                    key = { _, item -> item.chatId }
+                ) { index, item ->
                     ChatListCell(
                         item = item,
-                        onClick = onChatClick
+                        onClick = onChatClick,
+                        position = when (index) {
+                            0 -> {
+                                if (chats.size == 1) {
+                                    ListItemPosition.Single
+                                } else {
+                                    ListItemPosition.Top
+                                }
+                            }
+                            chats.lastIndex -> ListItemPosition.Bottom
+                            else -> ListItemPosition.Middle
+                        }
                     )
                 }
             } else {
@@ -112,6 +131,21 @@ fun NotFoundScreen() {
         LoadingIndicator()
         Text(
             text = "Chats not found, try to send messages!"
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    showSystemUi = true,
+    wallpaper = RED_DOMINATED_EXAMPLE
+)
+@Composable
+fun TestChatListScreen() {
+    ExpressivegramTheme {
+        ChatListScreen(
+            chatList = TdApi.ChatListMain(),
+            onChatClick = { }
         )
     }
 }

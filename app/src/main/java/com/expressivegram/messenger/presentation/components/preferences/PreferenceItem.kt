@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.expressivegram.messenger.BuildConfig
+import com.expressivegram.messenger.data.ChatType
 import com.expressivegram.messenger.presentation.components.profile.ChatPhotoItem
 import org.drinkless.tdlib.TdApi
 
@@ -32,23 +33,23 @@ fun PreferenceItem(
     icon: Any,
     onClick: (() -> Unit)? = null,
     iconTint: Color = LocalContentColor.current,
-    position: PreferencePosition = PreferencePosition.Single,
+    position: ListItemPosition = ListItemPosition.Single,
     trailingContent: @Composable (() -> Unit)? = null,
     maxLines: Int = Int.MAX_VALUE
 ) {
     val shape = when (position) {
-        PreferencePosition.Single -> MaterialTheme.shapes.large
-        PreferencePosition.Top -> MaterialTheme.shapes.large.copy(
+        ListItemPosition.Single -> MaterialTheme.shapes.large
+        ListItemPosition.Top -> MaterialTheme.shapes.large.copy(
             bottomStart = MaterialTheme.shapes.extraSmall.bottomStart,
             bottomEnd = MaterialTheme.shapes.extraSmall.bottomEnd
         )
 
-        PreferencePosition.Bottom -> MaterialTheme.shapes.large.copy(
+        ListItemPosition.Bottom -> MaterialTheme.shapes.large.copy(
             topStart = MaterialTheme.shapes.extraSmall.topStart,
             topEnd = MaterialTheme.shapes.extraSmall.topEnd
         )
 
-        PreferencePosition.Middle -> MaterialTheme.shapes.extraSmall
+        ListItemPosition.Middle -> MaterialTheme.shapes.extraSmall
     }
 
     Surface(
@@ -90,6 +91,7 @@ fun PreferenceItem(
                 is TdApi.File -> ChatPhotoItem(
                     name = BuildConfig.APPLICATION_ID,
                     photo = icon,
+                    chatType = ChatType.Channel,
                     modifier = Modifier.size(24.dp)
                 )
             }
