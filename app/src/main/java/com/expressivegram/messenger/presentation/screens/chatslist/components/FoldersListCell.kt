@@ -20,7 +20,11 @@ import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
 @Composable
-fun FoldersListCell(folders: List<TdApi.ChatFolderInfo?>?, onClick: (Int) -> Unit) {
+fun FoldersListCell(
+    folders: List<TdApi.ChatFolderInfo?>?,
+    onClick: (Int) -> Unit,
+    initialIndex: Int = -1
+) {
     if (folders == null) {
         return
     }
@@ -40,6 +44,7 @@ fun FoldersListCell(folders: List<TdApi.ChatFolderInfo?>?, onClick: (Int) -> Uni
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         itemsIndexed(fullFolders) { index, info ->
+            val index = if (initialIndex != -1 && initialIndex != index) initialIndex else index
             val isSelected = index == selectedIndex
 
             AssistChip(

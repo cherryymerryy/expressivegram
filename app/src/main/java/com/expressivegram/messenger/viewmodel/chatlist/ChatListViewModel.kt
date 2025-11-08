@@ -4,16 +4,17 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.expressivegram.messenger.data.ChatListItemState
-import com.expressivegram.messenger.data.ChatType
 import com.expressivegram.messenger.data.TdLibException
+import com.expressivegram.messenger.data.chat.ChatType
+import com.expressivegram.messenger.data.chatlist.ChatListItemState
 import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.extensions.getChatTitle
 import com.expressivegram.messenger.extensions.getForumTopicId
 import com.expressivegram.messenger.extensions.getLastMessageText
 import com.expressivegram.messenger.extensions.getSenderId
 import com.expressivegram.messenger.extensions.isChannel
-import com.expressivegram.messenger.extensions.isForum
+import com.expressivegram.messenger.extensions.isDefaultForum
+import com.expressivegram.messenger.utils.DateUtility
 import com.expressivegram.messenger.utils.Log
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
@@ -32,9 +33,6 @@ class ChatListViewModel : ViewModel() {
     private val _isFoldersLoading = mutableStateOf(true)
     val isFoldersLoading: State<Boolean> = _isFoldersLoading
 
-    private val _chats = MutableStateFlow<List<TdApi.Chat>>(emptyList())
-    val chats: StateFlow<List<TdApi.Chat>> = _chats.asStateFlow()
-
     private val _folders = mutableStateOf<List<TdApi.ChatFolderInfo>>(emptyList())
     val folders: State<List<TdApi.ChatFolderInfo>> = _folders
 
@@ -43,8 +41,77 @@ class ChatListViewModel : ViewModel() {
     private val _chatItems = MutableStateFlow<List<ChatListItemState>>(emptyList())
     val chatItems: StateFlow<List<ChatListItemState>> = _chatItems.asStateFlow()
 
+    private val _currentChatList = mutableStateOf<TdApi.ChatList>(TdApi.ChatListMain())
+    val currentChatList: State<TdApi.ChatList> = _currentChatList
+
     init {
         val instance = TdUtility.getInstance()
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatReadInbox>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
+                    if (index == -1) {
+                        return@update currentList
+                    }
+
+                    val oldItem = currentList[index]
+                    val newItem = oldItem.copy(
+                        unreadCount = update.unreadCount
+                    )
+
+                    if (oldItem == newItem) return@update currentList
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatReadOutbox>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
+                    if (index == -1) {
+                        return@update currentList
+                    }
+
+                    val oldItem = currentList[index]
+                    val isViewed = update.lastReadOutboxMessageId == oldItem.lastReadOutboxMessageId
+                    val newItem = oldItem.copy(
+                        isViewed = isViewed,
+                        lastReadOutboxMessageId = update.lastReadOutboxMessageId,
+                        unreadCount = if (isViewed) 0 else oldItem.unreadCount
+                    )
+
+                    if (oldItem == newItem) return@update currentList
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatReadInbox>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
+                    if (index == -1) {
+                        return@update currentList
+                    }
+
+                    val oldItem = currentList[index]
+                    val newItem = oldItem.copy(
+                        unreadCount = update.unreadCount
+                    )
+
+                    if (oldItem == newItem) return@update currentList
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
+            }
+            .launchIn(viewModelScope)
 
         instance.updates
             .filterIsInstance<TdApi.UpdateNewMessage>()
@@ -65,6 +132,7 @@ class ChatListViewModel : ViewModel() {
                         newList.add(
                             newElementIndex,
                             localChat
+
                         )
                     }
 
@@ -83,12 +151,51 @@ class ChatListViewModel : ViewModel() {
                     }
 
                     val oldItem = currentList[index]
-                    val newItem = oldItem.copy(
-                        lastMessageText = update.lastMessage?.getLastMessageText() ?: "❓",
+                    var newItem = oldItem.copy(
                         lastForumTopicName = getLastTopicName(
                             oldItem,
                             update.lastMessage
-                        )
+                        ),
+                        isFromMe = update.lastMessage?.getSenderId() == UserConfig.getInstance().getCurrentUser()?.id,
+                        lastMessageText = update.lastMessage?.getLastMessageText() ?: "❓ Unsupported message content",
+                    )
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatViewAsTopics>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
+                    if (index == -1) {
+                        return@update currentList
+                    }
+
+                    val oldItem = currentList[index]
+                    val newItem = oldItem.copy(
+                        chatType = if (update.viewAsTopics) ChatType.Forum else oldItem.chatType
+                    )
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatPhoto>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
+                    if (index == -1) {
+                        return@update currentList
+                    }
+
+                    val oldItem = currentList[index]
+                    val newItem = oldItem.copy(
+                        photo = update.photo?.small
                     )
 
                     currentList.toMutableList().apply { this[index] = newItem }
@@ -143,12 +250,16 @@ class ChatListViewModel : ViewModel() {
             .launchIn(viewModelScope)
     }
 
+    fun setChatList(list: TdApi.ChatList) {
+        _currentChatList.value = list
+    }
+
     suspend fun getLastTopicName(itemState: ChatListItemState, lastMessage: TdApi.Message?) : String? {
         if (lastMessage == null) {
             return null
         }
 
-        return if (itemState.isForum) {
+        return if (itemState.chatType == ChatType.Forum) {
             try {
                 val topicId = lastMessage.getForumTopicId()
                 if (topicId != 0L) {
@@ -190,7 +301,7 @@ class ChatListViewModel : ViewModel() {
                         val defaultTopicName = "General"
                         val chat = client.execute(TdApi.GetChat(id))
 
-                        val topicName = if (chat.isForum()) {
+                        val topicName = if (chat.isDefaultForum()) {
                             try {
                                 val topicId = chat.lastMessage?.getForumTopicId() ?: 0
                                 if (topicId != 0L) {
@@ -206,7 +317,7 @@ class ChatListViewModel : ViewModel() {
                             defaultTopicName
                         }
 
-                        val isFromMe = chat.lastMessage?.getSenderId() == UserConfig.getInstance().getCurrentUser()?.id
+                        val isFromMe = chat.lastMessage?.getSenderId() == UserConfig.getInstance().getClientUserId()
 
                         Pair(chat, ChatListItemState(
                             chatId = chat.id,
@@ -216,7 +327,7 @@ class ChatListViewModel : ViewModel() {
                                 is TdApi.ChatTypeSecret -> ChatType.Secret
                                 is TdApi.ChatTypeBasicGroup -> ChatType.Group
                                 is TdApi.ChatTypeSupergroup -> {
-                                    if (chat.isForum()) {
+                                    if (chat.isDefaultForum()) {
                                         ChatType.Forum
                                     } else if (chat.isChannel()) {
                                         ChatType.Channel
@@ -224,15 +335,17 @@ class ChatListViewModel : ViewModel() {
                                         ChatType.Group
                                     }
                                 }
+
                                 else -> ChatType.Group
                             },
                             photo = chat.photo?.small,
-                            lastMessageText = chat.getLastMessageText(),
+                            lastMessageText = chat.lastMessage?.getLastMessageText() ?: "❓ Unsupported message content",
                             unreadCount = chat.unreadCount,
-                            isForum = chat.isForum(),
                             lastForumTopicName = topicName,
                             isFromMe = isFromMe,
-                            isViewed = isFromMe
+                            isViewed = chat.lastMessage?.id == chat.lastReadOutboxMessageId,
+                            lastReadOutboxMessageId = chat.lastReadOutboxMessageId,
+                            sentDate = DateUtility.getDateFromUnix(chat.lastMessage?.date ?: 0)
                         ))
                     } catch (e: TdLibException) {
                         Log.e(e, "Failed to load chat $id")

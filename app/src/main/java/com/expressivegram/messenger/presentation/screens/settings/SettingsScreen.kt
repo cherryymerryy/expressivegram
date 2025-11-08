@@ -49,7 +49,7 @@ import androidx.compose.ui.tooling.preview.Wallpapers.GREEN_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expressivegram.messenger.BuildConfig
-import com.expressivegram.messenger.data.ChatType
+import com.expressivegram.messenger.data.chat.ChatType
 import com.expressivegram.messenger.extensions.execute
 import com.expressivegram.messenger.extensions.getMessageContent
 import com.expressivegram.messenger.presentation.components.preferences.ListItemPosition
@@ -135,8 +135,6 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
 
             ) {
             if (fullInfo?.personalChatId != 0L) {
-                viewModel.updatePersonalChat(fullInfo?.personalChatId ?: 0)
-
                 if (personalChat != null) {
                     item {
                         PreferenceCategory(title = "Personal chat")

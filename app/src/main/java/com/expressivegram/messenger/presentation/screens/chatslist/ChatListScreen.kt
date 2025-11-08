@@ -2,21 +2,19 @@ package com.expressivegram.messenger.presentation.screens.chatslist
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -39,17 +37,21 @@ import org.drinkless.tdlib.TdApi
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ChatListScreen(
-    chatList: TdApi.ChatList,
     onChatClick: (Long) -> Unit,
     viewModel: ChatListViewModel = viewModel()
 ) {
     val isFoldersLoading by viewModel.isFoldersLoading
     val chats by viewModel.chatItems.collectAsStateWithLifecycle()
-    val scope = rememberCoroutineScope()
-    val lazyListState = rememberLazyListState()
+    val list by viewModel.currentChatList
 
-    LaunchedEffect(key1 = chatList) {
-        viewModel.loadChats(chatList)
+    val scope = rememberCoroutineScope()
+
+    DisposableEffect(list) {
+        val job = scope.launch {
+            viewModel.loadChats(list)
+        }
+
+        onDispose { job.cancel() }
     }
 
     Column(
@@ -70,21 +72,29 @@ fun ChatListScreen(
             FoldersListCell(
                 folders = folders,
                 onClick = { index ->
-                    val list = when (index) {
-                        0 -> TdApi.ChatListMain()
-                        else -> TdApi.ChatListFolder(folders[index - 1].id)
-                    }
-
-                    scope.launch {
-                        viewModel.loadChats(list)
-                        lazyListState.animateScrollToItem(0)
-                    }
+                    viewModel.setChatList(
+                        when (index) {
+                            0 -> TdApi.ChatListMain()
+                            else -> TdApi.ChatListFolder(folders[index - 1].id)
+                        }
+                    )
                 }
             )
         }
 
+        val lazyListState = rememberLazyListState()
+
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 8.dp),
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .clip(
+                    shape = MaterialTheme.shapes.small.copy(
+                        topStart = MaterialTheme.shapes.medium.topStart,
+                        topEnd = MaterialTheme.shapes.medium.topEnd,
+                        bottomStart = CornerSize(0.dp),
+                        bottomEnd = CornerSize(0.dp)
+                    )
+                ),
             verticalArrangement = Arrangement.spacedBy(2.dp),
             state = lazyListState
         ) {
@@ -111,27 +121,15 @@ fun ChatListScreen(
                 }
             } else {
                 item {
-                    NotFoundScreen()
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularWavyProgressIndicator()
+                    }
                 }
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun NotFoundScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        LoadingIndicator()
-        Text(
-            text = "Chats not found, try to send messages!"
-        )
     }
 }
 
@@ -144,7 +142,6 @@ fun NotFoundScreen() {
 fun TestChatListScreen() {
     ExpressivegramTheme {
         ChatListScreen(
-            chatList = TdApi.ChatListMain(),
             onChatClick = { }
         )
     }

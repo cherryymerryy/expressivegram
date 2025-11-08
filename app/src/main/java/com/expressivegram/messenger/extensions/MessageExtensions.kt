@@ -1,5 +1,7 @@
 package com.expressivegram.messenger.extensions
 
+import com.expressivegram.messenger.data.message.TdMessage
+import com.expressivegram.messenger.utils.DateUtility
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
 import org.drinkless.tdlib.TdApi
@@ -80,4 +82,25 @@ suspend fun TdApi.Message.getLastMessageText(): String {
     }
 
     return author + (if (author.isNotEmpty()) ": " else "") + text
+}
+
+suspend fun TdApi.Message.toTdMessage(): TdMessage {
+    val realSenderId = getSenderId()
+    val client = TdUtility.getInstance().getClient()
+    return TdMessage(
+        id = id,
+        senderName = getSenderName(),
+        senderObject = senderId,
+        content = content,
+        sentDate = DateUtility.getDateFromUnix(date),
+        text = getMessageContent(),
+        reply = replyTo?.toTdReply(),
+        isFromMe = realSenderId == UserConfig.getInstance().getClientUserId(),
+        senderPhoto = when (senderId) {
+            is TdApi.MessageSenderChat -> client.execute(TdApi.GetChat(realSenderId)).photo?.small
+            is TdApi.MessageSenderUser -> client.execute(TdApi.GetUser(realSenderId)).profilePhoto?.small
+            else -> null
+        },
+        mediaAlbumId = mediaAlbumId
+    )
 }

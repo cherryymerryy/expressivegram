@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.Crossfade
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
@@ -17,6 +19,8 @@ import com.expressivegram.messenger.presentation.theme.ExpressivegramTheme
 import com.expressivegram.messenger.viewmodel.AppState
 import com.expressivegram.messenger.viewmodel.AppViewModel
 
+@ExperimentalMaterial3ExpressiveApi
+@ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +37,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalMaterial3ExpressiveApi
+@ExperimentalMaterial3Api
 @Composable
 fun AppContent(appViewModel: AppViewModel = viewModel()) {
     val appState by appViewModel.appState

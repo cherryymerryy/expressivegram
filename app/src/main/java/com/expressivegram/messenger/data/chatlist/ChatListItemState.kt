@@ -1,8 +1,9 @@
-package com.expressivegram.messenger.data
+package com.expressivegram.messenger.data.chatlist
 
 import androidx.compose.runtime.Immutable
+import com.expressivegram.messenger.data.chat.ChatType
 import org.drinkless.tdlib.TdApi
-import java.time.LocalDate
+import java.util.Date
 
 @Immutable
 data class ChatListItemState(
@@ -12,9 +13,9 @@ data class ChatListItemState(
     var lastMessageText: String,
     var unreadCount: Int,
     val photo: TdApi.File?,
-    val isForum: Boolean,
     var lastForumTopicName: String? = null,
     val isFromMe: Boolean,
     val isViewed: Boolean,
-    val sentDate: LocalDate? = null
+    val sentDate: Date,
+    val lastReadOutboxMessageId: Long
 )

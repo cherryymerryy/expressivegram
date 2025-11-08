@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
 import com.expressivegram.messenger.presentation.navigation.components.CustomTopBar
-import com.expressivegram.messenger.presentation.screens.chat.components.ChatBottomBar
+import com.expressivegram.messenger.presentation.screens.chat.components.bars.ChatBottomBar
 import com.expressivegram.messenger.presentation.theme.ExpressivegramTheme
 
 @ExperimentalMaterial3ExpressiveApi
@@ -41,7 +41,7 @@ fun TestScreen() {
             Box(Modifier.padding(ip).fillMaxSize()) {
                 Column {
 
-                    ChatBottomBar { }
+                    ChatBottomBar(permissions = null, memberStatus = null) { }
 
                     LazyColumn(
 //                    modifier =

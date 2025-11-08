@@ -1,116 +1,102 @@
 package com.expressivegram.messenger.presentation.screens.chat
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.expressivegram.messenger.extensions.send
-import com.expressivegram.messenger.presentation.screens.chat.components.ChatBottomBar
-import com.expressivegram.messenger.presentation.screens.chat.components.ChatTopBar
-import com.expressivegram.messenger.presentation.screens.chat.components.MessageCell
-import com.expressivegram.messenger.utils.TdUtility
+import com.expressivegram.messenger.data.chat.ChatType
+import com.expressivegram.messenger.presentation.screens.chat.components.bars.ChannelBottomBar
+import com.expressivegram.messenger.presentation.screens.chat.components.bars.ChatBottomBar
+import com.expressivegram.messenger.presentation.screens.chat.components.bars.ChatTopBar
+import com.expressivegram.messenger.presentation.screens.chat.components.forum.ForumTopicTabs
+import com.expressivegram.messenger.presentation.screens.chat.components.lists.HistoryList
 import com.expressivegram.messenger.viewmodel.chat.ChatViewModel
-import org.drinkless.tdlib.TdApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun ChatScreen(
     chatId: Long,
     onBackClick: () -> Unit,
-    viewModel: ChatViewModel = viewModel()
+    viewModel: ChatViewModel = viewModel(factory = ChatViewModel.provideFactory(chatId))
 ) {
-    val lazyListState = rememberLazyListState()
-
-    LaunchedEffect(chatId) {
-        viewModel.getChat(chatId)
-        viewModel.openChat(chatId)
-        viewModel.getMessages(chatId)
+    val chatState by viewModel.chatState.collectAsStateWithLifecycle()
+    if (chatState == null) {
+        return
     }
 
-    val chat by viewModel.chat
     val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val forumTopics by viewModel.forumTopics.collectAsStateWithLifecycle()
 
-    LaunchedEffect(messages) {
-        if (messages.isNotEmpty()) {
-            lazyListState.animateScrollToItem(index = 0)
-        }
-    }
+    val scope = rememberCoroutineScope()
 
-    Scaffold(
+    Column(
         modifier = Modifier
-            .fillMaxHeight()
-            .imePadding(),
-        topBar = {
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .imePadding()
+    ) {
+        chatState?.let {
             ChatTopBar(
-                chat,
+                chat = it,
                 onBackPressed = { onBackClick() }
             )
         }
-    ) { ip ->
+
         Box(
-            modifier = Modifier
-                .padding(ip)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(
-                        horizontal = 6.dp,
-                    )
-                    .fillMaxSize(),
-                state = lazyListState,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                reverseLayout = true,
-                contentPadding = PaddingValues(bottom = 90.dp)
-            ) {
-                items(messages, key = { it.id }) { msg ->
-                    MessageCell(msg)
+            if (chatState?.type == ChatType.Forum) {
+                ForumTopicTabs(
+                    topics = forumTopics,
+                    hasForumTabs = chatState?.hasForumTabs == true,
+                    onTabClick = { messageThreadId ->
+                        scope.launch(Dispatchers.IO) {
+                            viewModel.getMessagesInThread(
+                                messageThreadId = messageThreadId,
+                                fromMessageId = 0,
+                                offset = -50,
+                                limit = 100
+                            )
+                        }
+                    }
+                ) {
+                    HistoryList(messages)
                 }
+            } else {
+                HistoryList(messages)
             }
 
-            ChatBottomBar(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                onSendClick = { text ->
-                    TdUtility
-                        .getInstance()
-                        .getClient()
-                        .send(
-                            TdApi.SendMessage(
-                                chatId,
-                                0,
-                                null,
-                                null,
-                                null,
-                                TdApi.InputMessageText(
-                                    TdApi.FormattedText(
-                                        text,
-                                        null
-                                    ),
-                                    null,
-                                    false
-                                )
-                            )
-                        )
-                }
-            )
+            if (chatState?.type == ChatType.Channel) {
+                ChannelBottomBar(
+                    memberStatus = chatState?.memberStatus,
+                    permissions = chatState?.permissions
+                )
+            } else {
+                ChatBottomBar(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    onSendClick = { text ->
+                        // viewModel.sendMessage(text)
+                    },
+                    memberStatus = chatState?.memberStatus,
+                    permissions = chatState?.permissions
+                )
+            }
         }
     }
 }

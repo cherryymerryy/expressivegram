@@ -1,11 +1,12 @@
 package com.expressivegram.messenger.presentation.navigation.components
 
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.expressivegram.messenger.presentation.navigation.CallsList
 import com.expressivegram.messenger.presentation.navigation.ChatsList
@@ -19,7 +20,7 @@ fun CustomBottomNav(
 ) {
     val navigationItems = listOf(ContactsList, CallsList, ChatsList, Settings)
 
-    NavigationBar {
+    NavigationBar(modifier = Modifier.height(84.dp)) {
         navigationItems.forEach { item ->
             val isSelected = topLevelBackStack.topLevelKey == item
 
@@ -32,12 +33,6 @@ fun CustomBottomNav(
                     Icon(
                         imageVector = if (isSelected) item.selectedIcon else item.icon,
                         contentDescription = item.title,
-                    )
-                },
-                label = {
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.labelMedium
                     )
                 }
             )

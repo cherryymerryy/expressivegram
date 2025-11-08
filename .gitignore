@@ -36,3 +36,4 @@ API_KEYS
 /.kotlin/sessions
 /app/release
 expressive
+*.backup

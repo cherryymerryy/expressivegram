@@ -14,20 +14,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.expressivegram.messenger.data.FabButton
+import com.expressivegram.messenger.data.ui.FabButton
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FloatingActionMenu(
     expandIcon: ImageVector,
     closeIcon: ImageVector,
-    buttons: List<FabButton>,
-    modifier: Modifier = Modifier
+    buttons: List<FabButton>
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     FloatingActionButtonMenu(
-        modifier = modifier,
         expanded = expanded,
         button = {
             ToggleFloatingActionButton(

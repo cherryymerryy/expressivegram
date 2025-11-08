@@ -1,5 +1,6 @@
 package com.expressivegram.messenger.presentation.screens.chatslist.components
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,14 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Wallpapers.BLUE_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
-import com.expressivegram.messenger.data.ChatListItemState
-import com.expressivegram.messenger.data.ChatType
+import com.expressivegram.messenger.data.chat.ChatType
+import com.expressivegram.messenger.data.chatlist.ChatListItemState
 import com.expressivegram.messenger.presentation.components.preferences.ListItemPosition
 import com.expressivegram.messenger.presentation.components.profile.ChatPhotoItem
-import java.time.LocalDate
+import com.expressivegram.messenger.presentation.theme.ExpressivegramTheme
+import com.expressivegram.messenger.utils.DateUtility
+import org.drinkless.tdlib.TdApi
+import java.util.Date
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun ChatListCell(
     item: ChatListItemState,
@@ -55,6 +60,8 @@ fun ChatListCell(
     val titleFont = typography.titleMedium
     val subtitleFont = typography.labelMedium
 
+    TdApi.SendMessage()
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,7 +73,7 @@ fun ChatListCell(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             ChatPhotoItem(
@@ -91,19 +98,29 @@ fun ChatListCell(
                         style = titleFont,
                         maxLines = 1
                     )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
                     Text(
-                        text = "HH:mm",
+                        text = DateUtility.getFormattedDate(item.sentDate, "HH:mm"),
                         style = titleFont,
-                        maxLines = 1
+                        maxLines = 1,
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    UnreadMessagesBadge(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        unreadMessagesCount = item.unreadCount
                     )
                 }
 
-                if (item.isForum && item.lastForumTopicName != null) {
+                if (item.chatType == ChatType.Forum && item.lastForumTopicName != null) {
                     Text(
                         text = item.lastForumTopicName!!,
                         style = subtitleFont,
                         color = MaterialTheme.colorScheme.secondary,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                 }
 
@@ -111,10 +128,10 @@ fun ChatListCell(
                     Text(
                         modifier = Modifier.weight(1f),
                         overflow = TextOverflow.Ellipsis,
-                        text = item.lastMessageText,
+                        text =  item.lastMessageText,
                         style = subtitleFont,
                         color = MaterialTheme.colorScheme.secondary,
-                        maxLines = 1
+                        maxLines = 1,
                     )
 
                     if (item.isFromMe) {
@@ -130,60 +147,69 @@ fun ChatListCell(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                UnreadMessagesBadge(item.unreadCount)
-            }
         }
     }
 }
 
-@Preview
+@ExperimentalMaterial3ExpressiveApi
+@Preview(wallpaper = BLUE_DOMINATED_EXAMPLE)
+@Preview(wallpaper = BLUE_DOMINATED_EXAMPLE, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun ChatListCellPreview() {
     val data = ChatListItemState(
         100L,
-        "True titlуяяяяяяяяяяяяяяяяяяяяяяяяяяя",
-        lastMessageText = "TODO()",
+        "group test chat list cell",
+        lastMessageText = "True titlуяяяяяяяяяяяяяяяяяяяяяяяяяяzzzzяMy text",
         unreadCount = 2,
         photo = null,
-        isForum = false,
         lastForumTopicName = "General",
         isFromMe = true,
         isViewed = false,
         chatType = ChatType.Group,
-        sentDate = LocalDate.now()
+        sentDate = Date(),
+        lastReadOutboxMessageId = 0
     )
 
-    Column {
-        ChatListCell(
-            item = data,
-            onClick = { },
-            position = ListItemPosition.Top
-        )
-        Spacer(modifier = Modifier.size(2.dp))
-        ChatListCell(
-            item = data,
-            onClick = { },
-            position = ListItemPosition.Middle
-        )
-        Spacer(modifier = Modifier.size(2.dp))
-        ChatListCell(
-            item = data,
-            onClick = { },
-            position = ListItemPosition.Bottom
-        )
+    val data2 = data.copy(
+        title = "forum test chat list cell",
+        chatType = ChatType.Forum,
+        unreadCount = 42,
+        isFromMe = false
+    )
 
-        Spacer(modifier = Modifier.size(16.dp))
+    val data3 = data.copy(
+        title = "private test chat list cell",
+        chatType = ChatType.Private,
+        unreadCount = 0
+    )
 
-        ChatListCell(
-            item = data,
-            onClick = { },
-            position = ListItemPosition.Single
-        )
+    ExpressivegramTheme {
+        Column {
+            ChatListCell(
+                item = data,
+                onClick = { },
+                position = ListItemPosition.Top
+            )
+            Spacer(modifier = Modifier.size(2.dp))
+            ChatListCell(
+                item = data2,
+                onClick = { },
+                position = ListItemPosition.Middle
+            )
+            Spacer(modifier = Modifier.size(2.dp))
+            ChatListCell(
+                item = data,
+                onClick = { },
+                position = ListItemPosition.Bottom
+            )
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            ChatListCell(
+                item = data3,
+                onClick = { },
+                position = ListItemPosition.Single
+            )
+        }
     }
 }

@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.expressivegram.messenger.BuildConfig
-import com.expressivegram.messenger.data.ChatType
+import com.expressivegram.messenger.data.chat.ChatType
 import com.expressivegram.messenger.presentation.components.profile.ChatPhotoItem
 import org.drinkless.tdlib.TdApi
 

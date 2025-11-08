@@ -22,12 +22,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.expressivegram.messenger.BuildConfig
-import com.expressivegram.messenger.data.ChatType
+import com.expressivegram.messenger.data.chat.ChatType
 import com.expressivegram.messenger.utils.DownloadController
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.getInitials
@@ -42,11 +43,13 @@ import java.io.File
 fun ChatPhotoItem(
     name: String,
     photo: TdApi.File?,
+    chatType: ChatType,
     modifier: Modifier = Modifier,
-    chatType: ChatType
+    needOnlineStatus: Boolean = false,
 ) {
-    val backgroundColor = MaterialTheme.colorScheme.primary
-    val size = 48.dp
+    val backgroundColor = MaterialTheme.colorScheme.secondary
+    val textColor = MaterialTheme.colorScheme.onSecondary
+    val size = 54.dp
     val shape = when (chatType) {
         ChatType.Channel -> Slanted.toShape()
         ChatType.Forum -> Square.toShape()
@@ -57,6 +60,7 @@ fun ChatPhotoItem(
 
     val scope = rememberCoroutineScope()
     var url by remember { mutableStateOf("") }
+    var isOnline by remember { mutableStateOf(false) }
 
     val instance = TdUtility.getInstance()
 
@@ -75,6 +79,18 @@ fun ChatPhotoItem(
                 url = updateFile.file.local.path
             }
             .launchIn(scope)
+
+        if (needOnlineStatus) {
+            instance.updates
+                .filterIsInstance<TdApi.UpdateUserStatus>()
+                .onEach { update ->
+                    isOnline = when (update.status) {
+                        is TdApi.UserStatusOnline -> true
+                        else -> false
+                    }
+                }
+                .launchIn(scope)
+        }
     }
 
     if (photo != null) {
@@ -86,44 +102,57 @@ fun ChatPhotoItem(
             url = local.path
     }
 
-    if (url.isNotEmpty() && File(url).exists()) {
-        AsyncImage(
-            modifier = modifier
-                .size(size)
-                .clip(shape),
-            model = url,
-            contentDescription = name
-        )
-    } else if (name.isNotEmpty()) {
-        val initials = getInitials(name)
-
-        Box(
-            modifier = modifier
-                .size(size)
-                .clip(shape)
-                .background(backgroundColor),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = initials,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontSize = 20.sp
+    Box(
+        modifier = modifier.background(Color.Transparent)
+    ) {
+        if (url.isNotEmpty() && File(url).exists()) {
+            AsyncImage(
+                modifier = modifier
+                    .size(size)
+                    .clip(shape),
+                model = url,
+                contentDescription = name
             )
+        } else if (name.isNotEmpty()) {
+            val initials = getInitials(name)
+
+            Box(
+                modifier = modifier
+                    .size(size)
+                    .clip(shape)
+                    .background(backgroundColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = initials,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                    fontSize = 20.sp
+                )
+            }
+        } else {
+            Box(
+                modifier = modifier
+                    .size(size)
+                    .clip(shape)
+                    .background(backgroundColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = BuildConfig.APPLICATION_ID,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                    fontSize = 20.sp
+                )
+            }
         }
-    } else {
-        Box(
-            modifier = modifier
-                .size(size)
-                .clip(shape)
-                .background(backgroundColor),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = BuildConfig.APPLICATION_ID,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontSize = 20.sp
+
+        if (needOnlineStatus && isOnline) {
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .align(Alignment.BottomEnd)
+                    .background(backgroundColor)
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.expressivegram.messenger.presentation.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -23,7 +24,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.expressivegram.messenger.data.FabButton
+import com.expressivegram.messenger.data.ui.FabButton
 import com.expressivegram.messenger.presentation.components.FloatingActionMenu
 import com.expressivegram.messenger.presentation.navigation.CallsList
 import com.expressivegram.messenger.presentation.navigation.Chat
@@ -38,9 +39,10 @@ import com.expressivegram.messenger.presentation.screens.callslist.CallsListScre
 import com.expressivegram.messenger.presentation.screens.chat.ChatScreen
 import com.expressivegram.messenger.presentation.screens.chatslist.ChatListScreen
 import com.expressivegram.messenger.presentation.screens.settings.SettingsScreen
-import org.drinkless.tdlib.TdApi
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@ExperimentalMaterial3ExpressiveApi
+@ExperimentalMaterial3Api
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -98,7 +100,6 @@ fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
                 }
                 entry<ChatsList> {
                     ChatListScreen(
-                        chatList = TdApi.ChatListMain(),
                         onChatClick = { id ->
                             mainTopLevelBackStack.add(Chat(id))
                         }
@@ -118,6 +119,8 @@ fun MainScreen(mainTopLevelBackStack: TopLevelBackStack<NavKey>) {
     }
 }
 
+@ExperimentalMaterial3ExpressiveApi
+@ExperimentalMaterial3Api
 @Preview
 @Composable
 fun TestMainScreen() {

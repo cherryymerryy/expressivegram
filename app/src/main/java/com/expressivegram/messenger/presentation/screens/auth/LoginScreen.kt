@@ -136,7 +136,6 @@ fun LoginScreen(
                                 viewModel.onNextClicked(textFieldState.text as String)
                             }
                         )
-                        
                     }
                 )
             }
