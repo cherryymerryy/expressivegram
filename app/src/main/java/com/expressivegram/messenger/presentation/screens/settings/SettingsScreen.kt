@@ -51,7 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.expressivegram.messenger.BuildConfig
 import com.expressivegram.messenger.data.chat.ChatType
 import com.expressivegram.messenger.extensions.execute
-import com.expressivegram.messenger.extensions.getMessageContent
+import com.expressivegram.messenger.extensions.getTextMessageContent
 import com.expressivegram.messenger.presentation.components.preferences.ListItemPosition
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceCategory
 import com.expressivegram.messenger.presentation.components.preferences.PreferenceItem
@@ -140,7 +140,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                         PreferenceCategory(title = "Personal chat")
                     }
 
-                    var lastMessage = (personalChat?.lastMessage?.getMessageContent() ?: "❓ Unknown content")
+                    var lastMessage = ("❓ Unknown content")
                     lastMessage = lastMessage.replace(
                         regex = Regex(
                             pattern = "\n",

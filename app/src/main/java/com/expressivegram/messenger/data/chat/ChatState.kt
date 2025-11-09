@@ -1,7 +1,6 @@
 package com.expressivegram.messenger.data.chat
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.Stable
 import org.drinkless.tdlib.TdApi
 
 @Immutable

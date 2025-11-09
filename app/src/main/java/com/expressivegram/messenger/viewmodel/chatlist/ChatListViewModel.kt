@@ -15,6 +15,7 @@ import com.expressivegram.messenger.extensions.getSenderId
 import com.expressivegram.messenger.extensions.isChannel
 import com.expressivegram.messenger.extensions.isDefaultForum
 import com.expressivegram.messenger.utils.DateUtility
+import com.expressivegram.messenger.utils.DownloadController
 import com.expressivegram.messenger.utils.Log
 import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.UserConfig
@@ -48,7 +49,7 @@ class ChatListViewModel : ViewModel() {
         val instance = TdUtility.getInstance()
 
         instance.updates
-            .filterIsInstance<TdApi.UpdateChatReadInbox>()
+            .filterIsInstance<TdApi.UpdateChatUnreadMentionCount>()
             .onEach { update ->
                 _chatItems.update { currentList ->
                     val index = currentList.indexOfFirst { it.chatId == update.chatId }
@@ -58,7 +59,28 @@ class ChatListViewModel : ViewModel() {
 
                     val oldItem = currentList[index]
                     val newItem = oldItem.copy(
-                        unreadCount = update.unreadCount
+                        unreadMentionsCount = update.unreadMentionCount
+                    )
+
+                    if (oldItem == newItem) return@update currentList
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatUnreadReactionCount>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
+                    if (index == -1) {
+                        return@update currentList
+                    }
+
+                    val oldItem = currentList[index]
+                    val newItem = oldItem.copy(
+                        unreadReactionsCount = update.unreadReactionCount
                     )
 
                     if (oldItem == newItem) return@update currentList
@@ -219,21 +241,6 @@ class ChatListViewModel : ViewModel() {
             .launchIn(viewModelScope)
 
         instance.updates
-            .filterIsInstance<TdApi.UpdateChatReadInbox>()
-            .onEach { update ->
-                _chatItems.update { currentList ->
-                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
-                    if (index == -1) return@update currentList
-
-                    val oldItem = currentList[index]
-                    val newItem = oldItem.copy(unreadCount = update.unreadCount)
-
-                    currentList.toMutableList().apply { this[index] = newItem }
-                }
-            }
-            .launchIn(viewModelScope)
-
-        instance.updates
             .filterIsInstance<TdApi.UpdateChatFolders>()
             .onEach { update ->
                 _isFoldersLoading.value = true
@@ -246,6 +253,39 @@ class ChatListViewModel : ViewModel() {
                 _folders.value = update.chatFolders.asList()
                 UserConfig.getInstance().setFolders(_folders.value)
                 _isFoldersLoading.value = false
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateChatPhoto>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.chatId == update.chatId }
+                    if (index == -1) return@update currentList
+
+                    val oldItem = currentList[index]
+                    val newItem = oldItem.copy(photo = update.photo?.small)
+                    DownloadController.getInstance().downloadFile(update.photo?.small?.id ?: 0)
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
+            }
+            .launchIn(viewModelScope)
+
+        instance.updates
+            .filterIsInstance<TdApi.UpdateFile>()
+            .onEach { update ->
+                _chatItems.update { currentList ->
+                    val index = currentList.indexOfFirst { it.photo?.id == update.file.id }
+                    if (index == -1) return@update currentList
+
+                    val file = instance.getClient().execute(TdApi.GetFile(update.file.id))
+
+                    val oldItem = currentList[index]
+                    val newItem = oldItem.copy(photo = file)
+
+                    currentList.toMutableList().apply { this[index] = newItem }
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -341,6 +381,8 @@ class ChatListViewModel : ViewModel() {
                             photo = chat.photo?.small,
                             lastMessageText = chat.lastMessage?.getLastMessageText() ?: "❓ Unsupported message content",
                             unreadCount = chat.unreadCount,
+                            unreadMentionsCount = chat.unreadMentionCount,
+                            unreadReactionsCount = chat.unreadReactionCount,
                             lastForumTopicName = topicName,
                             isFromMe = isFromMe,
                             isViewed = chat.lastMessage?.id == chat.lastReadOutboxMessageId,

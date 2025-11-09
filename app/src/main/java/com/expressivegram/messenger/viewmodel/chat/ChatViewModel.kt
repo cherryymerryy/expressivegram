@@ -20,7 +20,6 @@ import com.expressivegram.messenger.utils.Log
 import com.expressivegram.messenger.utils.TdUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
@@ -40,6 +39,10 @@ class ChatViewModel(private val chatId: Long) : ViewModel() {
 
     private val _forumTopics = MutableStateFlow<TdApi.ForumTopics?>(null)
     val forumTopics = _forumTopics.asStateFlow()
+
+    private val _messageThreadId = MutableStateFlow<Long>(0)
+    val messageThreadId = _messageThreadId.asStateFlow()
+
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -282,6 +285,8 @@ class ChatViewModel(private val chatId: Long) : ViewModel() {
             return null
         }
 
+        _messageThreadId.update { messageThreadId }
+
         val client = TdUtility.getInstance().getClient()
         val req = TdApi.GetMessageThreadHistory(
             _chat.value?.id ?: 0,
@@ -306,12 +311,9 @@ class ChatViewModel(private val chatId: Long) : ViewModel() {
                     .distinctBy { it.message.id }
                     .sortedBy  { it.message.id }
 
-                combined.reversed()
-
                 recalculateMessagePositions(combined.toMutableList())
             }
 
-            newMessages.reversed()
             return newMessages.toMutableList()
         }
 

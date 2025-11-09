@@ -7,6 +7,8 @@ import com.expressivegram.messenger.extensions.send
 import org.drinkless.tdlib.TdApi
 import java.io.File
 
+const val PRIORITY_DEFAULT_CHAT_PHOTO = 32
+
 class DownloadController {
     companion object {
         @Volatile
@@ -33,7 +35,7 @@ class DownloadController {
         }
     }
 
-    fun downloadFile(fileId: Int, synchronous: Boolean = true) {
+    fun downloadFile(fileId: Int, priority: Int = PRIORITY_DEFAULT_CHAT_PHOTO, synchronous: Boolean = true) {
         val client = TdUtility.getInstance().getClient()
         client.send(TdApi.GetFile(fileId)) {
             if (it !is TdApi.File) {
@@ -44,7 +46,7 @@ class DownloadController {
                 client.send(
                     TdApi.DownloadFile(
                         fileId,
-                        1,
+                        priority,
                         0,
                         0,
                         synchronous

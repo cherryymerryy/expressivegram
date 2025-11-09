@@ -9,9 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,10 +20,10 @@ import com.expressivegram.messenger.presentation.screens.chat.components.bars.Ch
 import com.expressivegram.messenger.presentation.screens.chat.components.bars.ChatTopBar
 import com.expressivegram.messenger.presentation.screens.chat.components.forum.ForumTopicTabs
 import com.expressivegram.messenger.presentation.screens.chat.components.lists.HistoryList
+import com.expressivegram.messenger.utils.SendMessageHelper
 import com.expressivegram.messenger.viewmodel.chat.ChatViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.Dispatcher
 
 @ExperimentalMaterial3ExpressiveApi
 @Composable
@@ -41,6 +39,7 @@ fun ChatScreen(
 
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val forumTopics by viewModel.forumTopics.collectAsStateWithLifecycle()
+    val messageThreadId by viewModel.messageThreadId.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
 
@@ -76,6 +75,7 @@ fun ChatScreen(
                         }
                     }
                 ) {
+                    messages.reverse()
                     HistoryList(messages)
                 }
             } else {
@@ -91,7 +91,11 @@ fun ChatScreen(
                 ChatBottomBar(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     onSendClick = { text ->
-                        // viewModel.sendMessage(text)
+                        SendMessageHelper.sendMessage(
+                            chatId = chatId,
+                            messageThreadId = messageThreadId,
+                            text = text
+                        )
                     },
                     memberStatus = chatState?.memberStatus,
                     permissions = chatState?.permissions

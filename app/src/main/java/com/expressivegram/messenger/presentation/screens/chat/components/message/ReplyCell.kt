@@ -4,6 +4,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ fun ReplyCell(
             .background(background)
             .clickable(true) { onClick }
             .padding(4.dp)
+            .defaultMinSize(minWidth = 100.dp)
     ) {
         Text(
             text = reply.senderName,

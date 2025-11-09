@@ -65,10 +65,6 @@ fun HistoryList(
         if (messages.isNotEmpty()) {
             items(messages, key = { it.message.id }) { state ->
                 MessageCell(state)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            item {
-                Spacer(modifier = Modifier.height(14.dp))
             }
         } else {
             item {

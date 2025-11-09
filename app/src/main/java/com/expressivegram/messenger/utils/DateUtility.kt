@@ -6,7 +6,7 @@ import java.util.Locale
 
 object DateUtility {
     fun getDateFromUnix(timestamp: Int): Date {
-        return Date(timestamp.toLong())
+        return Date(timestamp.toLong() * 1000)
     }
 
     fun getFormattedDateFromUnix(timestamp: Int, formatPattern: String = "dd/M/yyyy hh:mm:ss a"): String {

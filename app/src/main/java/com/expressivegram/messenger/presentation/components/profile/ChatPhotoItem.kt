@@ -13,43 +13,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.expressivegram.messenger.BuildConfig
 import com.expressivegram.messenger.data.chat.ChatType
-import com.expressivegram.messenger.utils.DownloadController
-import com.expressivegram.messenger.utils.TdUtility
 import com.expressivegram.messenger.utils.getInitials
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.drinkless.tdlib.TdApi
 import java.io.File
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun ChatPhotoItem(
     name: String,
     photo: TdApi.File?,
     chatType: ChatType,
     modifier: Modifier = Modifier,
-    needOnlineStatus: Boolean = false,
 ) {
     val backgroundColor = MaterialTheme.colorScheme.secondary
     val textColor = MaterialTheme.colorScheme.onSecondary
     val size = 54.dp
+
     val shape = when (chatType) {
         ChatType.Channel -> Slanted.toShape()
         ChatType.Forum -> Square.toShape()
@@ -58,101 +46,27 @@ fun ChatPhotoItem(
         else -> CircleShape
     }
 
-    val scope = rememberCoroutineScope()
-    var url by remember { mutableStateOf("") }
-    var isOnline by remember { mutableStateOf(false) }
-
-    val instance = TdUtility.getInstance()
-
-    LaunchedEffect(Unit) {
-        instance.updates
-            .filterIsInstance<TdApi.UpdateFile>()
-            .onEach { updateFile ->
-                if (updateFile.file.id != photo?.id) {
-                    return@onEach
-                }
-
-                if (!updateFile.file.local.isDownloadingCompleted) {
-                    return@onEach
-                }
-
-                url = updateFile.file.local.path
-            }
-            .launchIn(scope)
-
-        if (needOnlineStatus) {
-            instance.updates
-                .filterIsInstance<TdApi.UpdateUserStatus>()
-                .onEach { update ->
-                    isOnline = when (update.status) {
-                        is TdApi.UserStatusOnline -> true
-                        else -> false
-                    }
-                }
-                .launchIn(scope)
-        }
-    }
-
-    if (photo != null) {
-        val local = photo.local
-
-        if (local.canBeDownloaded && !local.isDownloadingCompleted)
-            DownloadController.getInstance().downloadFile(photo.id)
-        else
-            url = local.path
-    }
+    val path = remember { photo?.local?.path }
+    val initials = remember(name) { getInitials(name) }
 
     Box(
-        modifier = modifier.background(Color.Transparent)
+        modifier = modifier
+            .size(size)
+            .clip(shape)
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
     ) {
-        if (url.isNotEmpty() && File(url).exists()) {
+        if (!path.isNullOrEmpty() && File(path).exists()) {
             AsyncImage(
-                modifier = modifier
-                    .size(size)
-                    .clip(shape),
-                model = url,
+                model = path,
                 contentDescription = name
             )
-        } else if (name.isNotEmpty()) {
-            val initials = getInitials(name)
-
-            Box(
-                modifier = modifier
-                    .size(size)
-                    .clip(shape)
-                    .background(backgroundColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = initials,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    fontSize = 20.sp
-                )
-            }
         } else {
-            Box(
-                modifier = modifier
-                    .size(size)
-                    .clip(shape)
-                    .background(backgroundColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = BuildConfig.APPLICATION_ID,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    fontSize = 20.sp
-                )
-            }
-        }
-
-        if (needOnlineStatus && isOnline) {
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .align(Alignment.BottomEnd)
-                    .background(backgroundColor)
+            Text(
+                text = initials,
+                fontWeight = FontWeight.Bold,
+                color = textColor,
+                fontSize = 20.sp
             )
         }
     }

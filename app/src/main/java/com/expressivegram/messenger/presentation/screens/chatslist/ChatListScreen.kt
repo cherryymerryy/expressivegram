@@ -11,12 +11,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,50 +25,34 @@ import androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.expressivegram.messenger.presentation.components.preferences.ListItemPosition
 import com.expressivegram.messenger.presentation.screens.chatslist.components.ChatListCell
 import com.expressivegram.messenger.presentation.screens.chatslist.components.FoldersListCell
 import com.expressivegram.messenger.presentation.theme.ExpressivegramTheme
-import com.expressivegram.messenger.utils.UserConfig
 import com.expressivegram.messenger.viewmodel.chatlist.ChatListViewModel
-import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3Api
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun ChatListScreen(
     onChatClick: (Long) -> Unit,
     viewModel: ChatListViewModel = viewModel()
 ) {
     val isFoldersLoading by viewModel.isFoldersLoading
+    val folders by viewModel.folders
     val chats by viewModel.chatItems.collectAsStateWithLifecycle()
     val list by viewModel.currentChatList
 
-    val scope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
 
-    DisposableEffect(list) {
-        val job = scope.launch {
-            viewModel.loadChats(list)
-        }
-
-        onDispose { job.cancel() }
+    LaunchedEffect(list) {
+        viewModel.loadChats(list)
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(
-                shape = MaterialTheme.shapes.small.copy(
-                    topStart = MaterialTheme.shapes.extraLargeIncreased.topStart,
-                    topEnd = MaterialTheme.shapes.extraLargeIncreased.topEnd,
-                    bottomStart = CornerSize(0.dp),
-                    bottomEnd = CornerSize(0.dp)
-                )
-            )
-            .background(MaterialTheme.colorScheme.surface)
+        modifier = Modifier.fillMaxSize()
     ) {
-        val folders = UserConfig.getInstance().getFolders()
-        if (!isFoldersLoading && folders != null) {
+        if (!isFoldersLoading) {
             FoldersListCell(
                 folders = folders,
                 onClick = { index ->
@@ -82,19 +66,18 @@ fun ChatListScreen(
             )
         }
 
-        val lazyListState = rememberLazyListState()
-
         LazyColumn(
             modifier = Modifier
-                .padding(horizontal = 8.dp)
+                .padding(top = 8.dp)
                 .clip(
                     shape = MaterialTheme.shapes.small.copy(
-                        topStart = MaterialTheme.shapes.medium.topStart,
-                        topEnd = MaterialTheme.shapes.medium.topEnd,
+                        topStart = MaterialTheme.shapes.extraLargeIncreased.topStart,
+                        topEnd = MaterialTheme.shapes.extraLargeIncreased.topEnd,
                         bottomStart = CornerSize(0.dp),
                         bottomEnd = CornerSize(0.dp)
                     )
-                ),
+                )
+                .background(MaterialTheme.colorScheme.surface),
             verticalArrangement = Arrangement.spacedBy(2.dp),
             state = lazyListState
         ) {
@@ -105,18 +88,7 @@ fun ChatListScreen(
                 ) { index, item ->
                     ChatListCell(
                         item = item,
-                        onClick = onChatClick,
-                        position = when (index) {
-                            0 -> {
-                                if (chats.size == 1) {
-                                    ListItemPosition.Single
-                                } else {
-                                    ListItemPosition.Top
-                                }
-                            }
-                            chats.lastIndex -> ListItemPosition.Bottom
-                            else -> ListItemPosition.Middle
-                        }
+                        onClick = onChatClick
                     )
                 }
             } else {
@@ -133,11 +105,13 @@ fun ChatListScreen(
     }
 }
 
+@ExperimentalMaterial3Api
 @Preview(
     showBackground = true,
     showSystemUi = true,
     wallpaper = RED_DOMINATED_EXAMPLE
 )
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun TestChatListScreen() {
     ExpressivegramTheme {

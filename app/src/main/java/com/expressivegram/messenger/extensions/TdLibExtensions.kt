@@ -33,5 +33,5 @@ suspend fun <T : TdApi.Object> Client.execute(query: TdApi.Function<T>): T {
 }
 
 fun <T: TdApi.Object> Client.send(query: TdApi.Function<T>) {
-    this.send(query) { Log.e("Sent $query") }
+    this.send(query) { Log.e("Sent $query, result: $it") }
 }

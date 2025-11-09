@@ -12,6 +12,8 @@ data class ChatListItemState(
     val chatType: ChatType,
     var lastMessageText: String,
     var unreadCount: Int,
+    var unreadMentionsCount: Int,
+    var unreadReactionsCount: Int,
     val photo: TdApi.File?,
     var lastForumTopicName: String? = null,
     val isFromMe: Boolean,

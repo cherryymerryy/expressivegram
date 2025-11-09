@@ -1,16 +1,16 @@
 package com.expressivegram.messenger.presentation.screens.chat.components.bars
 
-import androidx.compose.foundation.layout.height
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.delete
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.KeyboardVoice
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarColors
@@ -30,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -89,21 +90,21 @@ fun ChatBottomBar(
                     contentDescription = "Camera"
                 )
             }
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                onClick = { /*TODO*/ },
-                enabled = permissions?.canSendVoiceNotes == true
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardVoice,
-                    contentDescription = "Voice message"
-                )
-            }
+//            IconButton(
+//                modifier = Modifier.align(Alignment.CenterVertically),
+//                onClick = { /*TODO*/ },
+//                enabled = permissions?.canSendVoiceNotes == true
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Filled.KeyboardVoice,
+//                    contentDescription = "Voice message"
+//                )
+//            }
         }
         TextField(
             modifier = Modifier
                 .weight(1f)
-                .height(54.dp),
+                .clip(CircleShape),
             enabled = permissions?.canSendBasicMessages == true,
             state = textFieldState,
             shape = CircleShape,
@@ -144,6 +145,10 @@ fun ChatBottomBar(
                     }
                 }
             },
+            lineLimits = TextFieldLineLimits.MultiLine(
+                minHeightInLines = 1,
+                maxHeightInLines = 3
+            ),
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
@@ -154,7 +159,8 @@ fun ChatBottomBar(
 }
 
 @ExperimentalMaterial3ExpressiveApi
-@Preview
+@Preview(name = "chat_bottom_bar_default")
+@Preview(name = "chat_bottom_bar_night_mode", uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun TestChatBottomBar() {
     ExpressivegramTheme {

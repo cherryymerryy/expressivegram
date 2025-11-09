@@ -44,7 +44,7 @@ fun TdApi.Chat.isChannel(): Boolean {
 }
 
 suspend fun TdApi.Chat.getLastMessageText(): String {
-    val text = this.lastMessage?.getMessageContent() ?: "❓ Unsupported message content"
+    val text = this.lastMessage?.getTextMessageContent() ?: "❓ Unsupported message content"
     val author = when (this.type) {
         is TdApi.ChatTypeSupergroup -> {
             if (this.isChannel()) {
